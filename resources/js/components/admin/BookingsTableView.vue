@@ -1,24 +1,21 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import {
     Calendar,
     Clock,
     ChevronLeft,
     ChevronRight,
-    Search,
     Plus,
-    CheckCircle,
-    XCircle,
-    AlertCircle,
-    User,
-    Building,
-    Dumbbell,
     BarChart2,
     DollarSign,
     RotateCcw,
 } from '@lucide/vue';
-import { formatSlotRange, getMergedTimeSlots, isSlotPassed } from '@/utils/timeSlots';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import {
+    formatSlotRange,
+    getMergedTimeSlots,
+    isSlotPassed,
+} from '@/utils/timeSlots';
 
 interface CourtOption {
     id: number;
@@ -54,7 +51,12 @@ export interface TableBookingItem {
     status: string;
     receipt_url?: string | null;
     notes?: string | null;
-    court?: { id: number; name: string; sport_type?: string; slot_duration_minutes?: number | null } | null;
+    court?: {
+        id: number;
+        name: string;
+        sport_type?: string;
+        slot_duration_minutes?: number | null;
+    } | null;
     user?: { id: number; name: string } | null;
 }
 
@@ -63,7 +65,13 @@ const props = defineProps<{
     tableBookings: TableBookingItem[];
     courts: CourtOption[];
     venues?: VenueOption[] | null;
-    filters: { search?: string; court_id?: string; status?: string; date?: string; venue_id?: string };
+    filters: {
+        search?: string;
+        court_id?: string;
+        status?: string;
+        date?: string;
+        venue_id?: string;
+    };
     basePath: string;
     showVenueFilter: boolean;
 }>();
@@ -75,6 +83,7 @@ const emit = defineEmits<{
 
 const timeSlots = computed(() => {
     const bookedSlots = props.tableBookings.flatMap((b) => b.time_slots || []);
+
     return getMergedTimeSlots(bookedSlots);
 });
 
@@ -82,6 +91,7 @@ function getLocalDateString(d: Date = new Date()): string {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
+
     return `${year}-${month}-${day}`;
 }
 
@@ -101,10 +111,13 @@ onUnmounted(() => {
     }
 });
 
-const currentLocalDateStr = computed(() => getLocalDateString(currentNow.value));
+const currentLocalDateStr = computed(() =>
+    getLocalDateString(currentNow.value),
+);
 
 const isEveningOrNight = computed(() => {
     const hours = currentNow.value.getHours();
+
     return hours >= 17 || hours < 5; // 5:00 PM (17:00) onwards through late-night hours before 5:00 AM
 });
 
@@ -112,21 +125,29 @@ function isCurrentDate(d: TableDateHeader | string): boolean {
     const dateStr = typeof d === 'string' ? d : d.dateStr;
     const now = currentNow.value;
     const opDate = new Date(now);
+
     if (opDate.getHours() < 5) {
         opDate.setDate(opDate.getDate() - 1);
     }
+
     const operatingDateStr = getLocalDateString(opDate);
-    return dateStr === operatingDateStr || dateStr === currentLocalDateStr.value;
+
+    return (
+        dateStr === operatingDateStr || dateStr === currentLocalDateStr.value
+    );
 }
 
 function getDateHeaderLabel(d: TableDateHeader): string {
     if (isCurrentDate(d)) {
         return isEveningOrNight.value ? 'Tonight' : 'Today';
     }
+
     return d.dayName;
 }
 
-const selectedDate = ref(props.filters.date || props.tableDates[0]?.dateStr || getLocalDateString());
+const selectedDate = ref(
+    props.filters.date || props.tableDates[0]?.dateStr || getLocalDateString(),
+);
 const court_id = ref(props.filters.court_id || '');
 const status = ref(props.filters.status || '');
 const venue_id = ref(props.filters.venue_id || '');
@@ -141,7 +162,7 @@ function applyFilters() {
             status: status.value || undefined,
             venue_id: venue_id.value || undefined,
         },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true },
     );
 }
 
@@ -225,20 +246,32 @@ function getBookingsForDate(dateStr: string): TableBookingItem[] {
             map.set(b.id, b);
         }
     });
+
     return Array.from(map.values());
 }
 
-function getCountByStatus(dateStr: string, statusType: 'confirmed' | 'pending' | 'rejected'): number {
+function getCountByStatus(
+    dateStr: string,
+    statusType: 'confirmed' | 'pending' | 'rejected',
+): number {
     const list = getBookingsForDate(dateStr);
+
     if (statusType === 'confirmed') {
-        return list.filter((b) => b.status === 'approved' || b.status === 'confirmed').length;
+        return list.filter(
+            (b) => b.status === 'approved' || b.status === 'confirmed',
+        ).length;
     }
+
     if (statusType === 'pending') {
         return list.filter((b) => b.status === 'pending').length;
     }
+
     if (statusType === 'rejected') {
-        return list.filter((b) => b.status === 'rejected' || b.status === 'cancelled').length;
+        return list.filter(
+            (b) => b.status === 'rejected' || b.status === 'cancelled',
+        ).length;
     }
+
     return 0;
 }
 
@@ -252,8 +285,19 @@ function getTotalCountForDate(dateStr: string): number {
  */
 function getTotalHoursForDate(dateStr: string): number {
     return getBookingsForDate(dateStr)
-        .filter((b) => b.status === 'approved' || b.status === 'confirmed' || b.status === 'completed')
-        .reduce((sum, b) => sum + (b.time_slots?.length || 0) * ((b.court?.slot_duration_minutes || 60) / 60), 0);
+        .filter(
+            (b) =>
+                b.status === 'approved' ||
+                b.status === 'confirmed' ||
+                b.status === 'completed',
+        )
+        .reduce(
+            (sum, b) =>
+                sum +
+                (b.time_slots?.length || 0) *
+                    ((b.court?.slot_duration_minutes || 60) / 60),
+            0,
+        );
 }
 
 export interface DurationMetric {
@@ -267,30 +311,40 @@ const DURATION_STORAGE_KEY = 'admin_manual_duration_booked';
 function loadStoredDurations(): Record<string, DurationMetric> {
     try {
         const stored = localStorage.getItem(DURATION_STORAGE_KEY);
+
         if (stored) {
             return JSON.parse(stored);
         }
+
         const prev = localStorage.getItem('admin_manual_hours_booked');
+
         if (prev) {
             const parsed = JSON.parse(prev);
             const migrated: Record<string, DurationMetric> = {};
+
             for (const [k, v] of Object.entries(parsed)) {
-                const totalSec = Math.round((parseFloat(String(v)) || 0) * 3600);
+                const totalSec = Math.round(
+                    (parseFloat(String(v)) || 0) * 3600,
+                );
                 migrated[k] = {
                     hours: Math.floor(totalSec / 3600),
                     minutes: Math.floor((totalSec % 3600) / 60),
                     seconds: totalSec % 60,
                 };
             }
+
             return migrated;
         }
     } catch {
         // fallback
     }
+
     return {};
 }
 
-const manualDurations = ref<Record<string, DurationMetric>>(loadStoredDurations());
+const manualDurations = ref<Record<string, DurationMetric>>(
+    loadStoredDurations(),
+);
 
 function getDuration(dateStr: string): DurationMetric {
     if (!manualDurations.value[dateStr]) {
@@ -302,6 +356,7 @@ function getDuration(dateStr: string): DurationMetric {
             seconds: totalSec % 60,
         };
     }
+
     return manualDurations.value[dateStr];
 }
 
@@ -314,25 +369,33 @@ watch(
             // fallback
         }
     },
-    { deep: true }
+    { deep: true },
 );
 
 function getTotalSecondsForDate(dateStr: string): number {
     const dur = manualDurations.value[dateStr];
+
     if (!dur) {
         return Math.round(getTotalHoursForDate(dateStr) * 3600);
     }
+
     const h = Math.max(0, parseInt(String(dur.hours), 10) || 0);
     const m = Math.max(0, parseInt(String(dur.minutes), 10) || 0);
     const s = Math.max(0, parseInt(String(dur.seconds), 10) || 0);
+
     return h * 3600 + m * 60 + s;
 }
 
 function isDurationModified(dateStr: string): boolean {
     const dur = manualDurations.value[dateStr];
-    if (!dur) return false;
+
+    if (!dur) {
+        return false;
+    }
+
     const currentSec = getTotalSecondsForDate(dateStr);
     const autoSec = Math.round(getTotalHoursForDate(dateStr) * 3600);
+
     return currentSec !== autoSec;
 }
 
@@ -350,44 +413,75 @@ function resetDuration(dateStr: string): void {
 
 function getHourlyRateForDate(dateStr: string): number {
     const list = getBookingsForDate(dateStr).filter(
-        (b) => b.status === 'approved' || b.status === 'confirmed' || b.status === 'completed'
+        (b) =>
+            b.status === 'approved' ||
+            b.status === 'confirmed' ||
+            b.status === 'completed',
     );
     const autoHours = list.reduce(
-        (sum, b) => sum + (b.time_slots?.length || 0) * ((b.court?.slot_duration_minutes || 60) / 60),
-        0
+        (sum, b) =>
+            sum +
+            (b.time_slots?.length || 0) *
+                ((b.court?.slot_duration_minutes || 60) / 60),
+        0,
     );
-    const autoPrice = list.reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0);
+    const autoPrice = list.reduce(
+        (sum, b) => sum + (parseFloat(b.total_price) || 0),
+        0,
+    );
 
     if (autoHours > 0 && autoPrice > 0) {
         return autoPrice / autoHours;
     }
 
-    const pendingList = getBookingsForDate(dateStr).filter((b) => b.status === 'pending');
-    const pendingHours = pendingList.reduce(
-        (sum, b) => sum + (b.time_slots?.length || 0) * ((b.court?.slot_duration_minutes || 60) / 60),
-        0
+    const pendingList = getBookingsForDate(dateStr).filter(
+        (b) => b.status === 'pending',
     );
-    const pendingPrice = pendingList.reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0);
+    const pendingHours = pendingList.reduce(
+        (sum, b) =>
+            sum +
+            (b.time_slots?.length || 0) *
+                ((b.court?.slot_duration_minutes || 60) / 60),
+        0,
+    );
+    const pendingPrice = pendingList.reduce(
+        (sum, b) => sum + (parseFloat(b.total_price) || 0),
+        0,
+    );
+
     if (pendingHours > 0 && pendingPrice > 0) {
         return pendingPrice / pendingHours;
     }
 
     if (court_id.value) {
-        const court = props.courts.find((c) => String(c.id) === String(court_id.value));
+        const court = props.courts.find(
+            (c) => String(c.id) === String(court_id.value),
+        );
+
         if (court && court.base_price) {
             const p = parseFloat(String(court.base_price));
-            if (!isNaN(p) && p > 0) return p;
+
+            if (!isNaN(p) && p > 0) {
+                return p;
+            }
         }
     }
 
-    const allConfirmed = props.tableBookings.filter(
-        (b) => ['approved', 'confirmed', 'completed', 'pending'].includes(b.status)
+    const allConfirmed = props.tableBookings.filter((b) =>
+        ['approved', 'confirmed', 'completed', 'pending'].includes(b.status),
     );
     const allHours = allConfirmed.reduce(
-        (sum, b) => sum + (b.time_slots?.length || 0) * ((b.court?.slot_duration_minutes || 60) / 60),
-        0
+        (sum, b) =>
+            sum +
+            (b.time_slots?.length || 0) *
+                ((b.court?.slot_duration_minutes || 60) / 60),
+        0,
     );
-    const allPrice = allConfirmed.reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0);
+    const allPrice = allConfirmed.reduce(
+        (sum, b) => sum + (parseFloat(b.total_price) || 0),
+        0,
+    );
+
     if (allHours > 0 && allPrice > 0) {
         return allPrice / allHours;
     }
@@ -395,7 +489,10 @@ function getHourlyRateForDate(dateStr: string): number {
     if (props.courts && props.courts.length > 0) {
         for (const c of props.courts) {
             const p = parseFloat(String(c.base_price));
-            if (!isNaN(p) && p > 0) return p;
+
+            if (!isNaN(p) && p > 0) {
+                return p;
+            }
         }
     }
 
@@ -405,6 +502,7 @@ function getHourlyRateForDate(dateStr: string): number {
 function getComputedPriceForDate(dateStr: string): number {
     const rate = getHourlyRateForDate(dateStr);
     const hours = getTotalSecondsForDate(dateStr) / 3600;
+
     return Math.round(hours * rate * 100) / 100;
 }
 
@@ -413,12 +511,14 @@ const REVENUE_STORAGE_KEY = 'admin_manual_revenue_booked';
 function loadStoredRevenue(): Record<string, number | string> {
     try {
         const stored = localStorage.getItem(REVENUE_STORAGE_KEY);
+
         if (stored) {
             return JSON.parse(stored);
         }
     } catch {
         // fallback
     }
+
     return {};
 }
 
@@ -426,19 +526,30 @@ const manualRevenue = ref<Record<string, number | string>>(loadStoredRevenue());
 
 function getTotalPriceForDate(dateStr: string): number {
     const val = manualRevenue.value[dateStr];
+
     if (val !== undefined && val !== null && val !== '') {
         const num = parseFloat(String(val));
-        if (!isNaN(num)) return Math.max(0, num);
+
+        if (!isNaN(num)) {
+            return Math.max(0, num);
+        }
     }
+
     return getComputedPriceForDate(dateStr);
 }
 
 function isRevenueModified(dateStr: string): boolean {
-    if (manualRevenue.value[dateStr] === undefined || manualRevenue.value[dateStr] === null || manualRevenue.value[dateStr] === '') {
+    if (
+        manualRevenue.value[dateStr] === undefined ||
+        manualRevenue.value[dateStr] === null ||
+        manualRevenue.value[dateStr] === ''
+    ) {
         return false;
     }
+
     const current = Number(manualRevenue.value[dateStr]);
     const computedPrice = getComputedPriceForDate(dateStr);
+
     return Math.abs(current - computedPrice) > 0.01;
 }
 
@@ -460,9 +571,13 @@ function getDurationSummary(dateStr: string): string {
 watch(
     () => [props.tableBookings, props.tableDates],
     () => {
-        if (!props.tableDates) return;
+        if (!props.tableDates) {
+            return;
+        }
+
         props.tableDates.forEach((d) => {
             const dateStr = d.dateStr;
+
             if (!isDurationModified(dateStr)) {
                 const calcHours = getTotalHoursForDate(dateStr);
                 const totalSec = Math.round(calcHours * 3600);
@@ -472,12 +587,13 @@ watch(
                     seconds: totalSec % 60,
                 };
             }
+
             if (!isRevenueModified(dateStr)) {
                 manualRevenue.value[dateStr] = getComputedPriceForDate(dateStr);
             }
         });
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
 );
 
 watch(
@@ -489,27 +605,45 @@ watch(
             // fallback
         }
     },
-    { deep: true }
+    { deep: true },
 );
 
 function formatDurationTotal(totalSeconds: number): string {
     const sec = Math.round(totalSeconds);
-    if (sec <= 0) return '0h';
+
+    if (sec <= 0) {
+        return '0h';
+    }
 
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
 
     const parts: string[] = [];
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0) parts.push(`${m}m`);
-    if (s > 0) parts.push(`${s}s`);
+
+    if (h > 0) {
+        parts.push(`${h}h`);
+    }
+
+    if (m > 0) {
+        parts.push(`${m}m`);
+    }
+
+    if (s > 0) {
+        parts.push(`${s}s`);
+    }
 
     return parts.length > 0 ? parts.join(' ') : '0h';
 }
 
 function formatPrice(val: number): string {
-    return '₱' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (
+        '₱' +
+        val.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })
+    );
 }
 
 function formatRawPrice(val: number): string {
@@ -529,6 +663,7 @@ const grandTotals = computed(() => {
         revenue += getTotalPriceForDate(d.dateStr);
         totalSeconds += getTotalSecondsForDate(d.dateStr);
     });
+
     return {
         confirmed,
         pending,
@@ -544,14 +679,18 @@ const grandTotals = computed(() => {
 <template>
     <div class="space-y-6">
         <!-- Controls & Filter Toolbar -->
-        <div class="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm space-y-4">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div
+            class="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+        >
+            <div
+                class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center"
+            >
                 <!-- Date Navigation Bar -->
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
                         @click="shiftDays(-7)"
-                        class="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                        class="rounded-xl border border-neutral-200 bg-neutral-50 p-2 text-neutral-600 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                         title="Previous 7 Days"
                     >
                         <ChevronLeft class="size-4" />
@@ -563,14 +702,14 @@ const grandTotals = computed(() => {
                             type="date"
                             v-model="selectedDate"
                             @change="applyFilters"
-                            class="rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 text-xs font-bold text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            class="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-bold text-neutral-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                         />
                     </div>
 
                     <button
                         type="button"
                         @click="shiftDays(7)"
-                        class="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                        class="rounded-xl border border-neutral-200 bg-neutral-50 p-2 text-neutral-600 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                         title="Next 7 Days"
                     >
                         <ChevronRight class="size-4" />
@@ -578,8 +717,11 @@ const grandTotals = computed(() => {
 
                     <button
                         type="button"
-                        @click="selectedDate = getLocalDateString(); applyFilters();"
-                        class="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-bold text-neutral-700 dark:text-neutral-300 hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                        @click="
+                            selectedDate = getLocalDateString();
+                            applyFilters();
+                        "
+                        class="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-bold text-neutral-700 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                     >
                         {{ isEveningOrNight ? 'Tonight' : 'Today' }}
                     </button>
@@ -591,25 +733,29 @@ const grandTotals = computed(() => {
                         v-if="showVenueFilter && venues?.length"
                         v-model="venue_id"
                         @change="applyFilters"
-                        class="px-3 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                        class="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                     >
                         <option value="">All Locations</option>
-                        <option v-for="v in venues" :key="v.id" :value="v.id">{{ v.name }}</option>
+                        <option v-for="v in venues" :key="v.id" :value="v.id">
+                            {{ v.name }}
+                        </option>
                     </select>
 
                     <select
                         v-model="court_id"
                         @change="applyFilters"
-                        class="px-3 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                        class="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                     >
                         <option value="">All Courts</option>
-                        <option v-for="c in courts" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        <option v-for="c in courts" :key="c.id" :value="c.id">
+                            {{ c.name }}
+                        </option>
                     </select>
 
                     <select
                         v-model="status"
                         @change="applyFilters"
-                        class="px-3 py-1.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs font-semibold text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                        class="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-900 focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                     >
                         <option value="">All Statuses</option>
                         <option value="approved">Approved</option>
@@ -621,7 +767,7 @@ const grandTotals = computed(() => {
                     <button
                         v-if="court_id || status || venue_id"
                         @click="clearFilters"
-                        class="px-3 py-1.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-xl text-xs font-semibold hover:bg-neutral-300 dark:hover:bg-neutral-700"
+                        class="rounded-xl bg-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                     >
                         Clear
                     </button>
@@ -629,35 +775,53 @@ const grandTotals = computed(() => {
             </div>
 
             <!-- Legend -->
-            <div class="flex flex-wrap items-center gap-4 text-xs font-bold pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <div
+                class="flex flex-wrap items-center gap-4 border-t border-neutral-100 pt-2 text-xs font-bold dark:border-neutral-800"
+            >
                 <div class="flex items-center gap-1.5">
                     <span class="size-2.5 rounded-full bg-emerald-500" />
-                    <span class="text-neutral-600 dark:text-neutral-300">Available Slot</span>
+                    <span class="text-neutral-600 dark:text-neutral-300"
+                        >Available Slot</span
+                    >
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="size-2.5 rounded-full bg-blue-500" />
-                    <span class="text-neutral-600 dark:text-neutral-300">Approved / Confirmed</span>
+                    <span class="text-neutral-600 dark:text-neutral-300"
+                        >Approved / Confirmed</span
+                    >
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="size-2.5 rounded-full bg-amber-500" />
-                    <span class="text-neutral-600 dark:text-neutral-300">Pending</span>
+                    <span class="text-neutral-600 dark:text-neutral-300"
+                        >Pending</span
+                    >
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span class="size-2.5 rounded-full bg-rose-500" />
-                    <span class="text-neutral-600 dark:text-neutral-300">Rejected / Cancelled</span>
+                    <span class="text-neutral-600 dark:text-neutral-300"
+                        >Rejected / Cancelled</span
+                    >
                 </div>
             </div>
         </div>
 
         <!-- Table View Grid Matrix -->
-        <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[900px]">
+        <div
+            class="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+        >
+            <table class="w-full min-w-[900px] border-collapse text-left">
                 <thead>
-                    <tr class="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/60 text-neutral-500">
+                    <tr
+                        class="border-b border-neutral-200 bg-neutral-50 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60"
+                    >
                         <!-- First Column: Time Slots Header -->
-                        <th class="sticky left-0 z-20 bg-neutral-100 dark:bg-neutral-800 py-3.5 px-4 text-sm font-black uppercase tracking-wider text-neutral-900 dark:text-white border-r border-neutral-200 dark:border-neutral-700 min-w-[150px]">
+                        <th
+                            class="sticky left-0 z-20 min-w-[150px] border-r border-neutral-200 bg-neutral-100 px-4 py-3.5 text-sm font-black tracking-wider text-neutral-900 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                        >
                             <div class="flex items-center gap-2">
-                                <Clock class="size-4.5 text-emerald-600 dark:text-emerald-400" />
+                                <Clock
+                                    class="size-4.5 text-emerald-600 dark:text-emerald-400"
+                                />
                                 <span>Time Slot</span>
                             </div>
                         </th>
@@ -666,41 +830,55 @@ const grandTotals = computed(() => {
                         <th
                             v-for="d in tableDates"
                             :key="d.dateStr"
-                            class="py-3 px-3 text-center transition-all min-w-[145px]"
+                            class="min-w-[145px] px-3 py-3 text-center transition-all"
                             :class="[
                                 isCurrentDate(d)
-                                    ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] border-x border-emerald-500/20 dark:border-emerald-500/20'
+                                    ? 'border-x border-emerald-500/20 bg-emerald-500/[0.04] dark:border-emerald-500/20 dark:bg-emerald-500/[0.06]'
                                     : 'border-r border-neutral-200 dark:border-neutral-800',
                             ]"
                         >
                             <div class="flex flex-col items-center">
                                 <span
                                     v-if="isCurrentDate(d)"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 mb-1"
+                                    class="mb-1 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400"
                                 >
-                                    <span class="size-2 rounded-full bg-emerald-500" />
+                                    <span
+                                        class="size-2 rounded-full bg-emerald-500"
+                                    />
                                     {{ getDateHeaderLabel(d) }}
                                 </span>
                                 <span
                                     v-else
-                                    class="text-xs font-extrabold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-1"
+                                    class="mb-1 text-xs font-extrabold tracking-wider text-neutral-400 uppercase dark:text-neutral-500"
                                 >
                                     {{ getDateHeaderLabel(d) }}
                                 </span>
-                                <span class="text-base font-black my-0.5 text-neutral-900 dark:text-white">
+                                <span
+                                    class="my-0.5 text-base font-black text-neutral-900 dark:text-white"
+                                >
                                     {{ d.monthName }} {{ d.dayNum }}
                                 </span>
-                                <span class="text-[11px] font-mono font-medium text-neutral-400 dark:text-neutral-500">
+                                <span
+                                    class="font-mono text-[11px] font-medium text-neutral-400 dark:text-neutral-500"
+                                >
                                     {{ d.dateStr }}
                                 </span>
                             </div>
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800 text-xs">
-                    <tr v-for="slot in timeSlots" :key="slot" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                <tbody
+                    class="divide-y divide-neutral-100 text-xs dark:divide-neutral-800"
+                >
+                    <tr
+                        v-for="slot in timeSlots"
+                        :key="slot"
+                        class="transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30"
+                    >
                         <!-- Sticky Time Slot Column -->
-                        <td class="sticky left-0 z-10 bg-neutral-50 dark:bg-neutral-900 py-3.5 px-4 font-mono font-bold text-sm text-neutral-900 dark:text-white border-r border-neutral-200 dark:border-neutral-800 whitespace-nowrap">
+                        <td
+                            class="sticky left-0 z-10 border-r border-neutral-200 bg-neutral-50 px-4 py-3.5 font-mono text-sm font-bold whitespace-nowrap text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
+                        >
                             {{ formatSlotRange(slot, 60) }}
                         </td>
 
@@ -708,59 +886,122 @@ const grandTotals = computed(() => {
                         <td
                             v-for="d in tableDates"
                             :key="`${d.dateStr}-${slot}`"
-                            class="p-1.5 align-top min-h-16 transition-colors"
+                            class="min-h-16 p-1.5 align-top transition-colors"
                             :class="[
                                 isCurrentDate(d)
-                                    ? 'bg-emerald-500/[0.025] dark:bg-emerald-500/[0.04] border-x border-emerald-500/15 dark:border-emerald-500/15'
+                                    ? 'border-x border-emerald-500/15 bg-emerald-500/[0.025] dark:border-emerald-500/15 dark:bg-emerald-500/[0.04]'
                                     : 'border-r border-neutral-100 dark:border-neutral-800/60',
                             ]"
                         >
-                            <div class="flex h-full min-h-14 w-full flex-col gap-1">
+                            <div
+                                class="flex h-full min-h-14 w-full flex-col gap-1"
+                            >
                                 <!-- Every booking on this hour, rejections included -->
                                 <div
-                                    v-for="b in bookingsForCell(d.dateStr, slot)"
+                                    v-for="b in bookingsForCell(
+                                        d.dateStr,
+                                        slot,
+                                    )"
                                     :key="b.id"
                                     @click="emit('select-booking', b)"
-                                    class="w-full rounded-xl border p-2 flex flex-col justify-between cursor-pointer transition-all duration-150 shadow-xs"
-                                    :class="[cellStatusClass(b.status), isReleased(b.status) ? 'opacity-60' : '']"
+                                    class="flex w-full cursor-pointer flex-col justify-between rounded-xl border p-2 shadow-xs transition-all duration-150"
+                                    :class="[
+                                        cellStatusClass(b.status),
+                                        isReleased(b.status)
+                                            ? 'opacity-60'
+                                            : '',
+                                    ]"
                                 >
-                                    <div class="flex items-center justify-between gap-1">
-                                        <span class="font-bold truncate text-[11px]" :class="isReleased(b.status) ? 'line-through' : ''">
+                                    <div
+                                        class="flex items-center justify-between gap-1"
+                                    >
+                                        <span
+                                            class="truncate text-[11px] font-bold"
+                                            :class="
+                                                isReleased(b.status)
+                                                    ? 'line-through'
+                                                    : ''
+                                            "
+                                        >
                                             {{ b.name }}
                                         </span>
-                                        <span class="text-[9px] font-extrabold uppercase px-1 rounded-sm bg-black/10">
+                                        <span
+                                            class="rounded-sm bg-black/10 px-1 text-[9px] font-extrabold uppercase"
+                                        >
                                             {{ b.status }}
                                         </span>
                                     </div>
-                                    <div class="flex items-center justify-between text-[10px] opacity-90 mt-1">
-                                        <span class="truncate font-mono">{{ b.court?.name || 'Court' }}</span>
-                                        <span class="font-bold">₱{{ b.total_price }}</span>
+                                    <div
+                                        class="mt-1 flex items-center justify-between text-[10px] opacity-90"
+                                    >
+                                        <span class="truncate font-mono">{{
+                                            b.court?.name || 'Court'
+                                        }}</span>
+                                        <span class="font-bold"
+                                            >₱{{ b.total_price }}</span
+                                        >
                                     </div>
                                 </div>
 
                                 <!-- Still bookable when nothing here holds the hour and slot is not passed -->
                                 <div
-                                    v-if="cellIsOpen(d.dateStr, slot) && !isSlotPassed(d.dateStr, slot, currentNow)"
-                                    @click="emit('create-booking', { date: d.dateStr, slot })"
-                                    class="group w-full rounded-xl border border-dashed border-emerald-300/40 dark:border-emerald-800/40 bg-emerald-50/20 dark:bg-emerald-950/10 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-150"
-                                    :class="bookingsForCell(d.dateStr, slot).length ? 'py-1.5' : 'flex-1 p-2'"
+                                    v-if="
+                                        cellIsOpen(d.dateStr, slot) &&
+                                        !isSlotPassed(
+                                            d.dateStr,
+                                            slot,
+                                            currentNow,
+                                        )
+                                    "
+                                    @click="
+                                        emit('create-booking', {
+                                            date: d.dateStr,
+                                            slot,
+                                        })
+                                    "
+                                    class="group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-emerald-300/40 bg-emerald-50/20 transition-all duration-150 hover:border-emerald-500 hover:bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-950/10 dark:hover:bg-emerald-950/30"
+                                    :class="
+                                        bookingsForCell(d.dateStr, slot).length
+                                            ? 'py-1.5'
+                                            : 'flex-1 p-2'
+                                    "
                                 >
-                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 group-hover:hidden flex items-center gap-1">
-                                        <span class="size-1.5 rounded-full bg-emerald-500" /> Open
+                                    <span
+                                        class="flex items-center gap-1 text-[10px] font-bold text-emerald-600 group-hover:hidden dark:text-emerald-400"
+                                    >
+                                        <span
+                                            class="size-1.5 rounded-full bg-emerald-500"
+                                        />
+                                        Open
                                     </span>
-                                    <span class="hidden group-hover:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                                    <span
+                                        class="hidden items-center gap-1 text-[10px] font-bold text-emerald-700 group-hover:inline-flex dark:text-emerald-300"
+                                    >
                                         <Plus class="size-3" /> Book
                                     </span>
                                 </div>
 
                                 <!-- Past or already completed time slot: not available for creating a new booking -->
                                 <div
-                                    v-else-if="cellIsOpen(d.dateStr, slot) && isSlotPassed(d.dateStr, slot, currentNow)"
-                                    class="w-full rounded-xl border border-neutral-200/50 dark:border-neutral-800/50 bg-neutral-100/30 dark:bg-neutral-900/30 flex flex-col items-center justify-center cursor-not-allowed select-none opacity-50"
-                                    :class="bookingsForCell(d.dateStr, slot).length ? 'py-1.5' : 'flex-1 p-2'"
+                                    v-else-if="
+                                        cellIsOpen(d.dateStr, slot) &&
+                                        isSlotPassed(
+                                            d.dateStr,
+                                            slot,
+                                            currentNow,
+                                        )
+                                    "
+                                    class="flex w-full cursor-not-allowed flex-col items-center justify-center rounded-xl border border-neutral-200/50 bg-neutral-100/30 opacity-50 select-none dark:border-neutral-800/50 dark:bg-neutral-900/30"
+                                    :class="
+                                        bookingsForCell(d.dateStr, slot).length
+                                            ? 'py-1.5'
+                                            : 'flex-1 p-2'
+                                    "
                                     title="This time slot has already passed and cannot be booked."
                                 >
-                                    <span class="text-[9px] font-semibold text-neutral-400 dark:text-neutral-500">
+                                    <span
+                                        class="text-[9px] font-semibold text-neutral-400 dark:text-neutral-500"
+                                    >
                                         Passed
                                     </span>
                                 </div>
@@ -774,154 +1015,243 @@ const grandTotals = computed(() => {
         <!-- Booking Status Summary Section Below Booking Table -->
         <div class="space-y-4 pt-2">
             <!-- Section Header & Quick Metric Badges -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
+            <div
+                class="flex flex-col justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div>
-                    <h3 class="text-sm font-extrabold uppercase tracking-wider text-neutral-900 dark:text-white flex items-center gap-2">
+                    <h3
+                        class="flex items-center gap-2 text-sm font-extrabold tracking-wider text-neutral-900 uppercase dark:text-white"
+                    >
                         <BarChart2 class="size-4 text-emerald-600" />
                         <span>Booking Status &amp; Daily Revenue Summary</span>
                     </h3>
-                    <p class="text-xs text-neutral-500 mt-0.5">
-                        Breakdown of booking totals, statuses, and daily total revenue for each date in view.
+                    <p class="mt-0.5 text-xs text-neutral-500">
+                        Breakdown of booking totals, statuses, and daily total
+                        revenue for each date in view.
                     </p>
                 </div>
 
                 <!-- Grand Total Metric Badges -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                    <div
+                        class="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    >
                         <span class="size-2 rounded-full bg-emerald-500" />
                         <span>Confirmed: {{ grandTotals.confirmed }}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-xs font-bold">
+                    <div
+                        class="flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300"
+                    >
                         <span class="size-2 rounded-full bg-amber-500" />
                         <span>Pending: {{ grandTotals.pending }}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-bold">
+                    <div
+                        class="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300"
+                    >
                         <span class="size-2 rounded-full bg-rose-500" />
                         <span>Rejected: {{ grandTotals.rejected }}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-teal-300 dark:border-teal-800 bg-teal-100/70 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 text-xs font-extrabold shadow-2xs">
-                        <span>Revenue: {{ formatPrice(grandTotals.revenue) }}</span>
+                    <div
+                        class="flex items-center gap-1.5 rounded-xl border border-teal-300 bg-teal-100/70 px-3 py-1.5 text-xs font-extrabold text-teal-800 shadow-2xs dark:border-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
+                    >
+                        <span
+                            >Revenue:
+                            {{ formatPrice(grandTotals.revenue) }}</span
+                        >
                     </div>
-                    <div class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 dark:bg-sky-950/50 px-3 py-1 text-[11px] font-bold text-sky-700 dark:text-sky-300">
+                    <div
+                        class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-[11px] font-bold text-sky-700 dark:bg-sky-950/50 dark:text-sky-300"
+                    >
                         <Clock class="size-3.5" />
-                        <span>Hours Booked: {{ formatDurationTotal(grandTotals.totalSeconds) }}</span>
+                        <span
+                            >Hours Booked:
+                            {{
+                                formatDurationTotal(grandTotals.totalSeconds)
+                            }}</span
+                        >
                     </div>
                 </div>
             </div>
 
             <!-- Summary Table Matrix -->
-            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[900px]">
+            <div
+                class="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+            >
+                <table class="w-full min-w-[900px] border-collapse text-left">
                     <thead>
-                        <tr class="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-100/70 dark:bg-neutral-800/80 text-neutral-500">
-                            <th class="sticky left-0 z-20 bg-neutral-100 dark:bg-neutral-800 py-3.5 px-4 text-sm font-black uppercase tracking-wider text-neutral-900 dark:text-white border-r border-neutral-200 dark:border-neutral-700 min-w-[150px]">
+                        <tr
+                            class="border-b border-neutral-200 bg-neutral-100/70 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/80"
+                        >
+                            <th
+                                class="sticky left-0 z-20 min-w-[150px] border-r border-neutral-200 bg-neutral-100 px-4 py-3.5 text-sm font-black tracking-wider text-neutral-900 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                            >
                                 Summary Metric
                             </th>
                             <th
                                 v-for="d in tableDates"
                                 :key="d.dateStr"
-                                class="py-2.5 px-3 text-center min-w-[145px] transition-colors"
+                                class="min-w-[145px] px-3 py-2.5 text-center transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] border-x border-emerald-500/20 dark:border-emerald-500/20'
+                                        ? 'border-x border-emerald-500/20 bg-emerald-500/[0.04] dark:border-emerald-500/20 dark:bg-emerald-500/[0.06]'
                                         : 'border-r border-neutral-200 dark:border-neutral-800',
                                 ]"
                             >
-                                <span class="text-sm font-bold text-neutral-900 dark:text-white block">
+                                <span
+                                    class="block text-sm font-bold text-neutral-900 dark:text-white"
+                                >
                                     {{ d.formatted }}
                                 </span>
                                 <span
                                     v-if="isCurrentDate(d)"
-                                    class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                    class="mt-0.5 inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400"
                                 >
-                                    <span class="size-1 rounded-full bg-emerald-500" />
+                                    <span
+                                        class="size-1 rounded-full bg-emerald-500"
+                                    />
                                     {{ getDateHeaderLabel(d) }}
                                 </span>
-                                <span v-else class="text-[10px] font-semibold text-neutral-400">
+                                <span
+                                    v-else
+                                    class="text-[10px] font-semibold text-neutral-400"
+                                >
                                     {{ getDateHeaderLabel(d) }}
                                 </span>
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800 text-xs font-semibold">
+                    <tbody
+                        class="divide-y divide-neutral-100 text-xs font-semibold dark:divide-neutral-800"
+                    >
                         <!-- Confirmed Row -->
-                        <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                            <td class="sticky left-0 z-10 bg-neutral-50 dark:bg-neutral-900 py-2.5 px-4 text-emerald-700 dark:text-emerald-400 font-bold border-r border-neutral-200 dark:border-neutral-800 flex items-center gap-2">
-                                <span class="size-2.5 rounded-full bg-emerald-500" />
+                        <tr
+                            class="transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30"
+                        >
+                            <td
+                                class="sticky left-0 z-10 flex items-center gap-2 border-r border-neutral-200 bg-neutral-50 px-4 py-2.5 font-bold text-emerald-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-emerald-400"
+                            >
+                                <span
+                                    class="size-2.5 rounded-full bg-emerald-500"
+                                />
                                 Confirmed
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`conf-${d.dateStr}`"
-                                class="py-2.5 px-3 text-center font-bold transition-colors"
+                                class="px-3 py-2.5 text-center font-bold transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.025] dark:bg-emerald-500/[0.04] border-x border-emerald-500/15 dark:border-emerald-500/15'
+                                        ? 'border-x border-emerald-500/15 bg-emerald-500/[0.025] dark:border-emerald-500/15 dark:bg-emerald-500/[0.04]'
                                         : 'border-r border-neutral-100 dark:border-neutral-800/60',
                                 ]"
                             >
-                                <span :class="getCountByStatus(d.dateStr, 'confirmed') > 0 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full text-xs font-black' : 'text-neutral-400'">
-                                    {{ getCountByStatus(d.dateStr, 'confirmed') }}
+                                <span
+                                    :class="
+                                        getCountByStatus(
+                                            d.dateStr,
+                                            'confirmed',
+                                        ) > 0
+                                            ? 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-black text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400'
+                                            : 'text-neutral-400'
+                                    "
+                                >
+                                    {{
+                                        getCountByStatus(d.dateStr, 'confirmed')
+                                    }}
                                 </span>
                             </td>
                         </tr>
 
                         <!-- Pending Row -->
-                        <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                            <td class="sticky left-0 z-10 bg-neutral-50 dark:bg-neutral-900 py-2.5 px-4 text-amber-700 dark:text-amber-400 font-bold border-r border-neutral-200 dark:border-neutral-800 flex items-center gap-2">
-                                <span class="size-2.5 rounded-full bg-amber-500" />
+                        <tr
+                            class="transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30"
+                        >
+                            <td
+                                class="sticky left-0 z-10 flex items-center gap-2 border-r border-neutral-200 bg-neutral-50 px-4 py-2.5 font-bold text-amber-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-amber-400"
+                            >
+                                <span
+                                    class="size-2.5 rounded-full bg-amber-500"
+                                />
                                 Pending
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`pend-${d.dateStr}`"
-                                class="py-2.5 px-3 text-center font-bold transition-colors"
+                                class="px-3 py-2.5 text-center font-bold transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.025] dark:bg-emerald-500/[0.04] border-x border-emerald-500/15 dark:border-emerald-500/15'
+                                        ? 'border-x border-emerald-500/15 bg-emerald-500/[0.025] dark:border-emerald-500/15 dark:bg-emerald-500/[0.04]'
                                         : 'border-r border-neutral-100 dark:border-neutral-800/60',
                                 ]"
                             >
-                                <span :class="getCountByStatus(d.dateStr, 'pending') > 0 ? 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-full text-xs font-black' : 'text-neutral-400'">
+                                <span
+                                    :class="
+                                        getCountByStatus(d.dateStr, 'pending') >
+                                        0
+                                            ? 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-black text-amber-600 dark:bg-amber-950/60 dark:text-amber-400'
+                                            : 'text-neutral-400'
+                                    "
+                                >
                                     {{ getCountByStatus(d.dateStr, 'pending') }}
                                 </span>
                             </td>
                         </tr>
 
                         <!-- Rejected Row -->
-                        <tr class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                            <td class="sticky left-0 z-10 bg-neutral-50 dark:bg-neutral-900 py-2.5 px-4 text-rose-700 dark:text-rose-400 font-bold border-r border-neutral-200 dark:border-neutral-800 flex items-center gap-2">
-                                <span class="size-2.5 rounded-full bg-rose-500" />
+                        <tr
+                            class="transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30"
+                        >
+                            <td
+                                class="sticky left-0 z-10 flex items-center gap-2 border-r border-neutral-200 bg-neutral-50 px-4 py-2.5 font-bold text-rose-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-rose-400"
+                            >
+                                <span
+                                    class="size-2.5 rounded-full bg-rose-500"
+                                />
                                 Rejected
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`rej-${d.dateStr}`"
-                                class="py-2.5 px-3 text-center font-bold transition-colors"
+                                class="px-3 py-2.5 text-center font-bold transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.025] dark:bg-emerald-500/[0.04] border-x border-emerald-500/15 dark:border-emerald-500/15'
+                                        ? 'border-x border-emerald-500/15 bg-emerald-500/[0.025] dark:border-emerald-500/15 dark:bg-emerald-500/[0.04]'
                                         : 'border-r border-neutral-100 dark:border-neutral-800/60',
                                 ]"
                             >
-                                <span :class="getCountByStatus(d.dateStr, 'rejected') > 0 ? 'text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/60 px-2 py-0.5 rounded-full text-xs font-black' : 'text-neutral-400'">
-                                    {{ getCountByStatus(d.dateStr, 'rejected') }}
+                                <span
+                                    :class="
+                                        getCountByStatus(
+                                            d.dateStr,
+                                            'rejected',
+                                        ) > 0
+                                            ? 'rounded-full bg-rose-100 px-2 py-0.5 text-xs font-black text-rose-600 dark:bg-rose-950/60 dark:text-rose-400'
+                                            : 'text-neutral-400'
+                                    "
+                                >
+                                    {{
+                                        getCountByStatus(d.dateStr, 'rejected')
+                                    }}
                                 </span>
                             </td>
                         </tr>
 
                         <!-- Total Bookings Row -->
-                        <tr class="bg-neutral-100/60 dark:bg-neutral-800/60 font-black">
-                            <td class="sticky left-0 z-10 bg-neutral-100 dark:bg-neutral-800 py-2.5 px-4 text-neutral-900 dark:text-white uppercase tracking-wider text-[11px] border-r border-neutral-200 dark:border-neutral-700">
+                        <tr
+                            class="bg-neutral-100/60 font-black dark:bg-neutral-800/60"
+                        >
+                            <td
+                                class="sticky left-0 z-10 border-r border-neutral-200 bg-neutral-100 px-4 py-2.5 text-[11px] tracking-wider text-neutral-900 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                            >
                                 Total Bookings
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`tot-${d.dateStr}`"
-                                class="py-2.5 px-3 text-center text-neutral-900 dark:text-white font-extrabold text-xs transition-colors"
+                                class="px-3 py-2.5 text-center text-xs font-extrabold text-neutral-900 transition-colors dark:text-white"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06] border-x border-emerald-500/15 dark:border-emerald-500/15'
+                                        ? 'border-x border-emerald-500/15 bg-emerald-500/[0.04] dark:border-emerald-500/15 dark:bg-emerald-500/[0.06]'
                                         : 'border-r border-neutral-200 dark:border-neutral-700',
                                 ]"
                             >
@@ -930,34 +1260,43 @@ const grandTotals = computed(() => {
                         </tr>
 
                         <!-- Hours Booked Per Day Row (Editable hr, min, sec) -->
-                        <tr class="bg-sky-50/70 dark:bg-sky-950/30 font-black">
-                            <td class="sticky left-0 z-10 bg-sky-100/80 dark:bg-sky-950/80 py-2.5 px-4 text-sky-900 dark:text-sky-300 uppercase tracking-wider text-[11px] border-r border-sky-200 dark:border-sky-800 flex items-center gap-1.5">
+                        <tr class="bg-sky-50/70 font-black dark:bg-sky-950/30">
+                            <td
+                                class="sticky left-0 z-10 flex items-center gap-1.5 border-r border-sky-200 bg-sky-100/80 px-4 py-2.5 text-[11px] tracking-wider text-sky-900 uppercase dark:border-sky-800 dark:bg-sky-950/80 dark:text-sky-300"
+                            >
                                 <Clock class="size-3.5 text-sky-600" />
                                 Hours Booked
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`hours-${d.dateStr}`"
-                                class="py-2 px-2 text-center transition-colors"
+                                class="px-2 py-2 text-center transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-sky-500/[0.04] dark:bg-sky-500/[0.06] border-x border-sky-500/20'
+                                        ? 'border-x border-sky-500/20 bg-sky-500/[0.04] dark:bg-sky-500/[0.06]'
                                         : 'border-r border-sky-200/60 dark:border-sky-900/40',
                                 ]"
                             >
-                                <div class="inline-flex items-center justify-center gap-1 text-[11px]">
+                                <div
+                                    class="inline-flex items-center justify-center gap-1 text-[11px]"
+                                >
                                     <!-- Hours -->
                                     <div class="relative flex items-center">
                                         <input
                                             type="number"
                                             min="0"
-                                            v-model.number="getDuration(d.dateStr).hours"
+                                            v-model.number="
+                                                getDuration(d.dateStr).hours
+                                            "
                                             @input="onDurationChange(d.dateStr)"
                                             placeholder="0"
                                             title="Hours"
-                                            class="w-10 rounded-md border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-neutral-900 py-1 pl-1 pr-3.5 text-center text-xs font-black text-sky-900 dark:text-sky-200 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            class="w-10 [appearance:textfield] rounded-md border border-sky-300/80 bg-white py-1 pr-3.5 pl-1 text-center text-xs font-black text-sky-900 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-sky-700/80 dark:bg-neutral-900 dark:text-sky-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
-                                        <span class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70">h</span>
+                                        <span
+                                            class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70"
+                                            >h</span
+                                        >
                                     </div>
 
                                     <!-- Minutes -->
@@ -966,13 +1305,18 @@ const grandTotals = computed(() => {
                                             type="number"
                                             min="0"
                                             max="59"
-                                            v-model.number="getDuration(d.dateStr).minutes"
+                                            v-model.number="
+                                                getDuration(d.dateStr).minutes
+                                            "
                                             @input="onDurationChange(d.dateStr)"
                                             placeholder="0"
                                             title="Minutes"
-                                            class="w-10 rounded-md border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-neutral-900 py-1 pl-1 pr-4 text-center text-xs font-black text-sky-900 dark:text-sky-200 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            class="w-10 [appearance:textfield] rounded-md border border-sky-300/80 bg-white py-1 pr-4 pl-1 text-center text-xs font-black text-sky-900 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-sky-700/80 dark:bg-neutral-900 dark:text-sky-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
-                                        <span class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70">m</span>
+                                        <span
+                                            class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70"
+                                            >m</span
+                                        >
                                     </div>
 
                                     <!-- Seconds -->
@@ -981,13 +1325,18 @@ const grandTotals = computed(() => {
                                             type="number"
                                             min="0"
                                             max="59"
-                                            v-model.number="getDuration(d.dateStr).seconds"
+                                            v-model.number="
+                                                getDuration(d.dateStr).seconds
+                                            "
                                             @input="onDurationChange(d.dateStr)"
                                             placeholder="0"
                                             title="Seconds"
-                                            class="w-10 rounded-md border border-sky-300/80 dark:border-sky-700/80 bg-white dark:bg-neutral-900 py-1 pl-1 pr-3.5 text-center text-xs font-black text-sky-900 dark:text-sky-200 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            class="w-10 [appearance:textfield] rounded-md border border-sky-300/80 bg-white py-1 pr-3.5 pl-1 text-center text-xs font-black text-sky-900 shadow-2xs transition-all focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-sky-700/80 dark:bg-neutral-900 dark:text-sky-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
-                                        <span class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70">s</span>
+                                        <span
+                                            class="pointer-events-none absolute right-1 text-[10px] font-extrabold text-sky-600/70 dark:text-sky-400/70"
+                                            >s</span
+                                        >
                                     </div>
 
                                     <!-- Reset to calculated if modified -->
@@ -995,7 +1344,7 @@ const grandTotals = computed(() => {
                                         v-if="isDurationModified(d.dateStr)"
                                         type="button"
                                         @click="resetDuration(d.dateStr)"
-                                        class="p-0.5 rounded text-sky-500 hover:text-sky-700 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-colors cursor-pointer"
+                                        class="cursor-pointer rounded p-0.5 text-sky-500 transition-colors hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-sky-900/40"
                                         :title="`Reset to calculated (${formatDurationTotal(Math.round(getTotalHoursForDate(d.dateStr) * 3600))})`"
                                     >
                                         <RotateCcw class="size-2.5" />
@@ -1005,39 +1354,56 @@ const grandTotals = computed(() => {
                         </tr>
 
                         <!-- Total Daily Price / Revenue Row (Based on total hours, editable) -->
-                        <tr class="bg-emerald-50/70 dark:bg-emerald-950/30 font-black border-t-2 border-emerald-500/20">
-                            <td class="sticky left-0 z-10 bg-emerald-100/80 dark:bg-emerald-950/80 py-3 px-4 text-emerald-900 dark:text-emerald-300 uppercase tracking-wider text-[11px] border-r border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
+                        <tr
+                            class="border-t-2 border-emerald-500/20 bg-emerald-50/70 font-black dark:bg-emerald-950/30"
+                        >
+                            <td
+                                class="sticky left-0 z-10 flex items-center gap-1.5 border-r border-emerald-200 bg-emerald-100/80 px-4 py-3 text-[11px] tracking-wider text-emerald-900 uppercase dark:border-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300"
+                            >
                                 <DollarSign class="size-3.5 text-emerald-600" />
                                 Total Revenue (₱)
                             </td>
                             <td
                                 v-for="d in tableDates"
                                 :key="`price-${d.dateStr}`"
-                                class="py-2.5 px-2 text-center transition-colors"
+                                class="px-2 py-2.5 text-center transition-colors"
                                 :class="[
                                     isCurrentDate(d)
-                                        ? 'bg-emerald-500/[0.05] dark:bg-emerald-500/[0.07] border-x border-emerald-500/20'
+                                        ? 'border-x border-emerald-500/20 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.07]'
                                         : 'border-r border-emerald-200/60 dark:border-emerald-900/40',
                                 ]"
                             >
-                                <div class="inline-flex items-center justify-center gap-1">
+                                <div
+                                    class="inline-flex items-center justify-center gap-1"
+                                >
                                     <div class="relative flex items-center">
-                                        <span class="pointer-events-none absolute left-2 text-xs font-black text-emerald-700/80 dark:text-emerald-400/80">₱</span>
+                                        <span
+                                            class="pointer-events-none absolute left-2 text-xs font-black text-emerald-700/80 dark:text-emerald-400/80"
+                                            >₱</span
+                                        >
                                         <input
                                             type="number"
                                             min="0"
                                             step="any"
-                                            v-model.number="manualRevenue[d.dateStr]"
-                                            :placeholder="formatRawPrice(getComputedPriceForDate(d.dateStr))"
+                                            v-model.number="
+                                                manualRevenue[d.dateStr]
+                                            "
+                                            :placeholder="
+                                                formatRawPrice(
+                                                    getComputedPriceForDate(
+                                                        d.dateStr,
+                                                    ),
+                                                )
+                                            "
                                             :title="`Daily Revenue for ${d.formatted} (Based on ${getDurationSummary(d.dateStr)} @ ₱${getHourlyRateForDate(d.dateStr).toFixed(2)}/hr)`"
-                                            class="w-24 rounded-lg border border-emerald-300/80 dark:border-emerald-700/80 bg-white dark:bg-neutral-900 py-1 pl-6 pr-2 text-center text-xs font-black text-emerald-700 dark:text-emerald-300 shadow-2xs transition-all focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            class="w-24 [appearance:textfield] rounded-lg border border-emerald-300/80 bg-white py-1 pr-2 pl-6 text-center text-xs font-black text-emerald-700 shadow-2xs transition-all focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none dark:border-emerald-700/80 dark:bg-neutral-900 dark:text-emerald-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         />
                                     </div>
                                     <button
                                         v-if="isRevenueModified(d.dateStr)"
                                         type="button"
                                         @click="resetRevenue(d.dateStr)"
-                                        class="p-0.5 rounded text-emerald-500 hover:text-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors cursor-pointer"
+                                        class="cursor-pointer rounded p-0.5 text-emerald-500 transition-colors hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/40"
                                         :title="`Reset to calculated revenue based on total hours (₱${formatRawPrice(getComputedPriceForDate(d.dateStr))})`"
                                     >
                                         <RotateCcw class="size-2.5" />

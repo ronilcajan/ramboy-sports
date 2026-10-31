@@ -29,12 +29,12 @@ const lightboxUrl = ref<string | null>(null);
         <!-- Masonry layout via CSS columns -->
         <div
             v-if="images.length"
-            class="columns-2 gap-3 sm:columns-3 lg:columns-4 [column-fill:_balance]"
+            class="columns-2 gap-3 [column-fill:_balance] sm:columns-3 lg:columns-4"
         >
             <figure
                 v-for="(image, i) in images"
                 :key="i"
-                class="group relative mb-3 block cursor-zoom-in overflow-hidden rounded-xl border border-line bg-surface-inverse break-inside-avoid"
+                class="group relative mb-3 block cursor-zoom-in break-inside-avoid overflow-hidden rounded-xl border border-line bg-surface-inverse"
                 @click="lightboxUrl = image.url"
             >
                 <img
@@ -50,8 +50,14 @@ const lightboxUrl = ref<string | null>(null);
                     v-if="image.court || image.venue"
                     class="absolute inset-x-0 bottom-0 translate-y-2 p-3 text-content-inverse opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
                 >
-                    <span class="block text-sm font-bold">{{ image.court }}</span>
-                    <span v-if="image.venue" class="block text-xs text-content-inverse/70">{{ image.venue }}</span>
+                    <span class="block text-sm font-bold">{{
+                        image.court
+                    }}</span>
+                    <span
+                        v-if="image.venue"
+                        class="block text-xs text-content-inverse/70"
+                        >{{ image.venue }}</span
+                    >
                 </figcaption>
             </figure>
         </div>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
+import { ref, onUnmounted } from 'vue';
 import InputError from '@/components/InputError.vue';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export interface VenueData {
     id: number;
@@ -30,7 +30,7 @@ const props = withDefaults(
     }>(),
     {
         canManageVenueImages: true,
-    }
+    },
 );
 
 const form = useForm({
@@ -52,17 +52,23 @@ const imagePreview = ref<string | null>(null);
 
 function onImageChange(e: Event) {
     const target = e.target as HTMLInputElement;
+
     if (target.files && target.files[0]) {
         const file = target.files[0];
+
         if (file.size > 5 * 1024 * 1024) {
             alert('File size exceeds 5MB limit.');
+
             return;
         }
+
         form.image = file;
         form.delete_image = false;
+
         if (imagePreview.value) {
             URL.revokeObjectURL(imagePreview.value);
         }
+
         imagePreview.value = URL.createObjectURL(file);
     }
 }
@@ -70,6 +76,7 @@ function onImageChange(e: Event) {
 function removeImage() {
     form.image = null;
     form.delete_image = true;
+
     if (imagePreview.value) {
         URL.revokeObjectURL(imagePreview.value);
         imagePreview.value = null;
@@ -83,6 +90,7 @@ function deleteImageNow() {
             onSuccess: () => {
                 form.image = null;
                 form.delete_image = false;
+
                 if (imagePreview.value) {
                     URL.revokeObjectURL(imagePreview.value);
                     imagePreview.value = null;
@@ -122,7 +130,7 @@ onUnmounted(() => {
                 id="description"
                 v-model="form.description"
                 rows="3"
-                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
             />
             <InputError :message="form.errors.description" />
         </div>
@@ -147,36 +155,81 @@ onUnmounted(() => {
         </div>
 
         <!-- Venue Cover Photo -->
-        <div v-if="canManageVenueImages !== false" class="space-y-3 rounded-xl border border-input p-4">
+        <div
+            v-if="canManageVenueImages !== false"
+            class="space-y-3 rounded-xl border border-input p-4"
+        >
             <div>
                 <h3 class="text-sm font-semibold">Location Cover Photo</h3>
-                <p class="text-xs text-muted-foreground">Upload or replace a hero cover photo for this location (JPG, PNG, WEBP max 5MB).</p>
+                <p class="text-xs text-muted-foreground">
+                    Upload or replace a hero cover photo for this location (JPG,
+                    PNG, WEBP max 5MB).
+                </p>
             </div>
 
-            <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex flex-wrap items-center gap-4">
                 <div v-if="imagePreview" class="relative">
-                    <img :src="imagePreview" alt="Preview" class="h-20 w-32 rounded-lg object-cover border border-input shadow-sm" />
-                    <span class="absolute -top-2 -right-2 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">New</span>
+                    <img
+                        :src="imagePreview"
+                        alt="Preview"
+                        class="h-20 w-32 rounded-lg border border-input object-cover shadow-sm"
+                    />
+                    <span
+                        class="absolute -top-2 -right-2 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white"
+                        >New</span
+                    >
                 </div>
-                <div v-else-if="venue.image_url && !form.delete_image" class="relative">
-                    <img :src="venue.image_url" alt="Current Cover" class="h-20 w-32 rounded-lg object-cover border border-input shadow-sm" />
+                <div
+                    v-else-if="venue.image_url && !form.delete_image"
+                    class="relative"
+                >
+                    <img
+                        :src="venue.image_url"
+                        alt="Current Cover"
+                        class="h-20 w-32 rounded-lg border border-input object-cover shadow-sm"
+                    />
                 </div>
-                <div v-else class="h-20 w-32 rounded-lg border border-dashed border-input flex items-center justify-center text-xs text-muted-foreground">
+                <div
+                    v-else
+                    class="flex h-20 w-32 items-center justify-center rounded-lg border border-dashed border-input text-xs text-muted-foreground"
+                >
                     No Cover
                 </div>
 
                 <div class="space-y-2">
-                    <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp" @change="onImageChange" class="text-xs" />
-                    <div v-if="venue.image_url && !form.delete_image" class="pt-1 flex items-center gap-3">
-                        <button type="button" @click="removeImage" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        @change="onImageChange"
+                        class="text-xs"
+                    />
+                    <div
+                        v-if="venue.image_url && !form.delete_image"
+                        class="flex items-center gap-3 pt-1"
+                    >
+                        <button
+                            type="button"
+                            @click="removeImage"
+                            class="cursor-pointer text-xs font-semibold text-amber-600 hover:underline dark:text-amber-400"
+                        >
                             Mark for deletion on save
                         </button>
-                        <span class="text-xs text-neutral-300 dark:text-neutral-700">|</span>
-                        <button type="button" @click="deleteImageNow" class="text-xs font-bold text-rose-600 hover:text-rose-700 underline cursor-pointer">
+                        <span
+                            class="text-xs text-neutral-300 dark:text-neutral-700"
+                            >|</span
+                        >
+                        <button
+                            type="button"
+                            @click="deleteImageNow"
+                            class="cursor-pointer text-xs font-bold text-rose-600 underline hover:text-rose-700"
+                        >
                             Remove image now
                         </button>
                     </div>
-                    <div v-if="form.delete_image" class="text-xs text-rose-500 font-medium">
+                    <div
+                        v-if="form.delete_image"
+                        class="text-xs font-medium text-rose-500"
+                    >
                         Cover image marked for deletion on save.
                     </div>
                 </div>
@@ -189,13 +242,20 @@ onUnmounted(() => {
             <div>
                 <h3 class="text-sm font-semibold">Payment Methods</h3>
                 <p class="text-xs text-muted-foreground">
-                    Add GCash / Maya details so customers can pay when booking. A method only appears in the booking modal if its number is set. QR image is optional.
+                    Add GCash / Maya details so customers can pay when booking.
+                    A method only appears in the booking modal if its number is
+                    set. QR image is optional.
                 </p>
             </div>
 
             <div class="space-y-2">
                 <Label for="gcash_number">GCash Number</Label>
-                <Input id="gcash_number" v-model="form.gcash_number" type="text" placeholder="0917 123 4567" />
+                <Input
+                    id="gcash_number"
+                    v-model="form.gcash_number"
+                    type="text"
+                    placeholder="0917 123 4567"
+                />
                 <InputError :message="form.errors.gcash_number" />
                 <div class="flex items-center gap-3">
                     <img
@@ -205,8 +265,17 @@ onUnmounted(() => {
                         class="size-14 rounded border border-input object-cover"
                     />
                     <div class="flex items-center gap-2">
-                        <input type="file" accept="image/*" @change="(e) => onQrChange(e, 'gcash_qr')" class="text-xs" />
-                        <span class="text-xs text-muted-foreground">{{ venue.gcash_qr_url ? 'Replace QR (optional)' : 'GCash QR (optional)' }}</span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            @change="(e) => onQrChange(e, 'gcash_qr')"
+                            class="text-xs"
+                        />
+                        <span class="text-xs text-muted-foreground">{{
+                            venue.gcash_qr_url
+                                ? 'Replace QR (optional)'
+                                : 'GCash QR (optional)'
+                        }}</span>
                     </div>
                 </div>
                 <InputError :message="form.errors.gcash_qr" />
@@ -214,7 +283,12 @@ onUnmounted(() => {
 
             <div class="space-y-2">
                 <Label for="maya_number">Maya Number</Label>
-                <Input id="maya_number" v-model="form.maya_number" type="text" placeholder="0918 555 0000" />
+                <Input
+                    id="maya_number"
+                    v-model="form.maya_number"
+                    type="text"
+                    placeholder="0918 555 0000"
+                />
                 <InputError :message="form.errors.maya_number" />
                 <div class="flex items-center gap-3">
                     <img
@@ -224,8 +298,17 @@ onUnmounted(() => {
                         class="size-14 rounded border border-input object-cover"
                     />
                     <div class="flex items-center gap-2">
-                        <input type="file" accept="image/*" @change="(e) => onQrChange(e, 'maya_qr')" class="text-xs" />
-                        <span class="text-xs text-muted-foreground">{{ venue.maya_qr_url ? 'Replace QR (optional)' : 'Maya QR (optional)' }}</span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            @change="(e) => onQrChange(e, 'maya_qr')"
+                            class="text-xs"
+                        />
+                        <span class="text-xs text-muted-foreground">{{
+                            venue.maya_qr_url
+                                ? 'Replace QR (optional)'
+                                : 'Maya QR (optional)'
+                        }}</span>
                     </div>
                 </div>
                 <InputError :message="form.errors.maya_qr" />
@@ -253,7 +336,7 @@ onUnmounted(() => {
             <button
                 type="button"
                 @click="router.visit(cancelUrl)"
-                class="rounded-xl bg-neutral-200 dark:bg-neutral-800 px-4 py-2 text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-300 dark:hover:bg-neutral-700"
+                class="rounded-xl bg-neutral-200 px-4 py-2 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             >
                 Cancel
             </button>

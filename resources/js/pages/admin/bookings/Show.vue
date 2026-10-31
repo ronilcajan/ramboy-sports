@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, useForm, setLayoutProps } from '@inertiajs/vue3';
-import { CalendarDays, ArrowLeft, CheckCircle, XCircle, User, Phone, Mail, FileText, DollarSign } from '@lucide/vue';
+import {
+    CalendarDays,
+    ArrowLeft,
+    CheckCircle,
+    XCircle,
+    User,
+    FileText,
+} from '@lucide/vue';
 
 interface Booking {
     id: number;
@@ -29,7 +36,10 @@ setLayoutProps({
     breadcrumbs: [
         { title: 'Super Admin Overview', href: '/admin/dashboard' },
         { title: 'All Bookings', href: '/admin/bookings' },
-        { title: `Booking #${props.booking.id}`, href: `/admin/bookings/${props.booking.id}` },
+        {
+            title: `Booking #${props.booking.id}`,
+            href: `/admin/bookings/${props.booking.id}`,
+        },
     ],
 });
 
@@ -49,99 +59,177 @@ function updateStatus(newStatus: string) {
 <template>
     <Head :title="`Booking #${booking.id} Details`" />
 
-    <div class="p-6 space-y-6 w-full">
-            <div class="flex items-center justify-between">
-                <Link href="/admin/bookings" class="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1">
-                    <ArrowLeft class="w-4 h-4" /> Back to Bookings
-                </Link>
+    <div class="w-full space-y-6 p-6">
+        <div class="flex items-center justify-between">
+            <Link
+                href="/admin/bookings"
+                class="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white"
+            >
+                <ArrowLeft class="h-4 w-4" /> Back to Bookings
+            </Link>
+        </div>
+
+        <div
+            class="space-y-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+        >
+            <div
+                class="flex flex-col justify-between gap-4 border-b border-neutral-100 pb-4 sm:flex-row sm:items-center dark:border-neutral-800"
+            >
+                <div>
+                    <span class="font-mono text-xs font-bold text-emerald-600"
+                        >Booking Ref #{{ booking.id }}</span
+                    >
+                    <h1
+                        class="text-xl font-bold text-neutral-900 dark:text-white"
+                    >
+                        Reservation Details
+                    </h1>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        @click="updateStatus('approved')"
+                        class="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow transition-colors hover:bg-emerald-700"
+                    >
+                        <CheckCircle class="h-4 w-4" /> Approve
+                    </button>
+                    <button
+                        @click="updateStatus('rejected')"
+                        class="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow transition-colors hover:bg-rose-700"
+                    >
+                        <XCircle class="h-4 w-4" /> Reject
+                    </button>
+                </div>
             </div>
 
-            <div class="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4 gap-4">
-                    <div>
-                        <span class="text-xs font-mono font-bold text-emerald-600">Booking Ref #{{ booking.id }}</span>
-                        <h1 class="text-xl font-bold text-neutral-900 dark:text-white">Reservation Details</h1>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button
-                            @click="updateStatus('approved')"
-                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow transition-colors flex items-center gap-1.5"
-                        >
-                            <CheckCircle class="w-4 h-4" /> Approve
-                        </button>
-                        <button
-                            @click="updateStatus('rejected')"
-                            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow transition-colors flex items-center gap-1.5"
-                        >
-                            <XCircle class="w-4 h-4" /> Reject
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <!-- Customer Details -->
-                    <div class="space-y-3 p-4 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40">
-                        <h3 class="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-2">
-                            <User class="w-4 h-4 text-emerald-600" /> Customer Information
-                        </h3>
-                        <div class="space-y-1.5 text-neutral-700 dark:text-neutral-300">
-                            <p><strong>Name:</strong> {{ booking.name }}</p>
-                            <p><strong>Email:</strong> {{ booking.email }}</p>
-                            <p><strong>Phone:</strong> {{ booking.phone }}</p>
-                            <p v-if="booking.user"><strong>Registered User:</strong> {{ booking.user.name }} (ID #{{ booking.user.id }})</p>
-                        </div>
-                    </div>
-
-                    <!-- Booking Details -->
-                    <div class="space-y-3 p-4 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40">
-                        <h3 class="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-2">
-                            <CalendarDays class="w-4 h-4 text-emerald-600" /> Reservation Info
-                        </h3>
-                        <div class="space-y-1.5 text-neutral-700 dark:text-neutral-300">
-                            <p><strong>Court:</strong> {{ booking.court?.name }}</p>
-                            <p><strong>Date:</strong> {{ booking.date }}</p>
-                            <p><strong>Time Slots:</strong> <span class="font-mono">{{ booking.time_slots ? booking.time_slots.join(', ') : '' }}</span></p>
-                            <p><strong>Total Price:</strong> <span class="font-bold text-emerald-600">₱{{ booking.total_price }}</span></p>
-                            <p>
-                                <strong>Transaction Ref:</strong>
-                                <span v-if="booking.transaction_code" class="font-mono font-bold text-neutral-900 dark:text-white">{{ booking.transaction_code }}</span>
-                                <span v-else class="italic text-neutral-400">Not provided</span>
-                            </p>
-                            <p><strong>Current Status:</strong> <span class="font-bold capitalize">{{ booking.status }}</span></p>
-                            <div v-if="booking.admin_notes" class="pt-1">
-                                <strong>{{ booking.status === 'rejected' ? 'Rejection Reason:' : 'Admin Note:' }}</strong>
-                                <span class="block mt-1 p-2 rounded-lg" :class="booking.status === 'rejected' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/40' : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40'">
-                                    {{ booking.admin_notes }}
-                                </span>
-                            </div>
-                        </div>
+            <div class="grid grid-cols-1 gap-6 text-xs md:grid-cols-2">
+                <!-- Customer Details -->
+                <div
+                    class="space-y-3 rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-800/40"
+                >
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white"
+                    >
+                        <User class="h-4 w-4 text-emerald-600" /> Customer
+                        Information
+                    </h3>
+                    <div
+                        class="space-y-1.5 text-neutral-700 dark:text-neutral-300"
+                    >
+                        <p><strong>Name:</strong> {{ booking.name }}</p>
+                        <p><strong>Email:</strong> {{ booking.email }}</p>
+                        <p><strong>Phone:</strong> {{ booking.phone }}</p>
+                        <p v-if="booking.user">
+                            <strong>Registered User:</strong>
+                            {{ booking.user.name }} (ID #{{ booking.user.id }})
+                        </p>
                     </div>
                 </div>
 
-                <div v-if="booking.receipt_path || booking.receipt_url" class="p-4 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/40 text-xs space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-sm text-neutral-900 dark:text-white flex items-center gap-2">
-                            <FileText class="w-4 h-4 text-emerald-600" /> Customer Payment Receipt Document
-                        </h3>
-                        <a
-                            :href="booking.receipt_url || '/storage/' + booking.receipt_path"
-                            target="_blank"
-                            class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold flex items-center gap-1"
-                        >
-                            Open Original File &rarr;
-                        </a>
+                <!-- Booking Details -->
+                <div
+                    class="space-y-3 rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-800/40"
+                >
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white"
+                    >
+                        <CalendarDays class="h-4 w-4 text-emerald-600" />
+                        Reservation Info
+                    </h3>
+                    <div
+                        class="space-y-1.5 text-neutral-700 dark:text-neutral-300"
+                    >
+                        <p><strong>Court:</strong> {{ booking.court?.name }}</p>
+                        <p><strong>Date:</strong> {{ booking.date }}</p>
+                        <p>
+                            <strong>Time Slots:</strong>
+                            <span class="font-mono">{{
+                                booking.time_slots
+                                    ? booking.time_slots.join(', ')
+                                    : ''
+                            }}</span>
+                        </p>
+                        <p>
+                            <strong>Total Price:</strong>
+                            <span class="font-bold text-emerald-600"
+                                >₱{{ booking.total_price }}</span
+                            >
+                        </p>
+                        <p>
+                            <strong>Transaction Ref:</strong>
+                            <span
+                                v-if="booking.transaction_code"
+                                class="font-mono font-bold text-neutral-900 dark:text-white"
+                                >{{ booking.transaction_code }}</span
+                            >
+                            <span v-else class="text-neutral-400 italic"
+                                >Not provided</span
+                            >
+                        </p>
+                        <p>
+                            <strong>Current Status:</strong>
+                            <span class="font-bold capitalize">{{
+                                booking.status
+                            }}</span>
+                        </p>
+                        <div v-if="booking.admin_notes" class="pt-1">
+                            <strong>{{
+                                booking.status === 'rejected'
+                                    ? 'Rejection Reason:'
+                                    : 'Admin Note:'
+                            }}</strong>
+                            <span
+                                class="mt-1 block rounded-lg p-2"
+                                :class="
+                                    booking.status === 'rejected'
+                                        ? 'border border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300'
+                                        : 'border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                "
+                            >
+                                {{ booking.admin_notes }}
+                            </span>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Inline image preview if image format -->
-                    <div class="mt-2 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-black/5 max-w-md">
-                        <img
-                            :src="booking.receipt_url || '/storage/' + booking.receipt_path"
-                            alt="Uploaded Customer Receipt"
-                            class="max-h-72 w-auto object-contain rounded-lg mx-auto"
-                        />
-                    </div>
+            <div
+                v-if="booking.receipt_path || booking.receipt_url"
+                class="space-y-3 rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 text-xs dark:border-neutral-800 dark:bg-neutral-800/40"
+            >
+                <div class="flex items-center justify-between">
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold text-neutral-900 dark:text-white"
+                    >
+                        <FileText class="h-4 w-4 text-emerald-600" /> Customer
+                        Payment Receipt Document
+                    </h3>
+                    <a
+                        :href="
+                            booking.receipt_url ||
+                            '/storage/' + booking.receipt_path
+                        "
+                        target="_blank"
+                        class="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1 font-semibold text-white hover:bg-emerald-700"
+                    >
+                        Open Original File &rarr;
+                    </a>
+                </div>
+
+                <!-- Inline image preview if image format -->
+                <div
+                    class="mt-2 max-w-md overflow-hidden rounded-xl border border-neutral-200 bg-black/5 dark:border-neutral-700"
+                >
+                    <img
+                        :src="
+                            booking.receipt_url ||
+                            '/storage/' + booking.receipt_path
+                        "
+                        alt="Uploaded Customer Receipt"
+                        class="mx-auto max-h-72 w-auto rounded-lg object-contain"
+                    />
                 </div>
             </div>
         </div>
+    </div>
 </template>

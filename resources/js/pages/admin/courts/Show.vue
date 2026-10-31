@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     ArrowLeft,
@@ -14,7 +13,6 @@ import {
     ArrowUpRight,
     FileText,
     Search,
-    Eye,
     CalendarPlus,
     Calendar,
     Pencil,
@@ -23,9 +21,11 @@ import {
     Users,
     Tag,
 } from '@lucide/vue';
-import BookingDetailModal, { type BookingDetail } from '@/components/admin/BookingDetailModal.vue';
-import CreateBookingModal from '@/components/admin/CreateBookingModal.vue';
+import { ref, computed } from 'vue';
+import BookingDetailModal from '@/components/admin/BookingDetailModal.vue';
+import type { BookingDetail } from '@/components/admin/BookingDetailModal.vue';
 import CourtImageManagerModal from '@/components/admin/CourtImageManagerModal.vue';
+import CreateBookingModal from '@/components/admin/CreateBookingModal.vue';
 import EditCourtModal from '@/components/admin/EditCourtModal.vue';
 import VenueScheduleTab from '@/components/admin/VenueScheduleTab.vue';
 
@@ -156,10 +156,14 @@ const scheduleCourts = computed(() => [
 ]);
 
 function applyFilters() {
-    router.get(`/admin/courts/${props.court.id}`, {
-        search: search.value || undefined,
-        status: statusFilter.value || undefined,
-    }, { preserveState: true, replace: true });
+    router.get(
+        `/admin/courts/${props.court.id}`,
+        {
+            search: search.value || undefined,
+            status: statusFilter.value || undefined,
+        },
+        { preserveState: true, replace: true },
+    );
 }
 
 function clearFilters() {
@@ -189,7 +193,11 @@ function openBookingDetails(b: BookingItem) {
 }
 
 function updateBookingStatus(bookingId: number, newStatus: string) {
-    router.patch(`/admin/bookings/${bookingId}/status`, { status: newStatus }, { preserveScroll: true });
+    router.patch(
+        `/admin/bookings/${bookingId}/status`,
+        { status: newStatus },
+        { preserveScroll: true },
+    );
 }
 
 function deleteBooking(bookingId: number) {
@@ -215,33 +223,57 @@ const statusBadgeClass = computed(() => {
 <template>
     <Head :title="`${court.name} – Court Profile`" />
 
-    <div class="p-6 space-y-8 w-full">
+    <div class="w-full space-y-8 p-6">
         <!-- Back link -->
-        <Link href="/admin/courts" class="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-emerald-600 transition-colors">
-            <ArrowLeft class="w-3.5 h-3.5" /> Back to Courts
+        <Link
+            href="/admin/courts"
+            class="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 transition-colors hover:text-emerald-600"
+        >
+            <ArrowLeft class="h-3.5 w-3.5" /> Back to Courts
         </Link>
 
         <!-- Court Header Hero Card -->
-        <div class="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
+        <div
+            class="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+        >
             <!-- Primary Image Banner -->
-            <div class="relative h-48 sm:h-64 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+            <div
+                class="relative h-48 overflow-hidden bg-neutral-100 sm:h-64 dark:bg-neutral-800"
+            >
                 <img
                     v-if="court.primary_image_url"
                     :src="court.primary_image_url"
                     :alt="court.name"
                     class="h-full w-full object-cover"
                 />
-                <div v-else class="flex h-full w-full items-center justify-center text-neutral-300 dark:text-neutral-600">
+                <div
+                    v-else
+                    class="flex h-full w-full items-center justify-center text-neutral-300 dark:text-neutral-600"
+                >
                     <Dumbbell class="h-20 w-20" />
                 </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                />
 
                 <!-- Status Badges -->
-                <div class="absolute right-4 top-4 flex items-center gap-2">
-                    <span :class="['rounded-full px-3 py-1 text-[11px] font-bold capitalize shadow-md', statusBadgeClass]">
+                <div class="absolute top-4 right-4 flex items-center gap-2">
+                    <span
+                        :class="[
+                            'rounded-full px-3 py-1 text-[11px] font-bold capitalize shadow-md',
+                            statusBadgeClass,
+                        ]"
+                    >
                         {{ court.status }}
                     </span>
-                    <span :class="['rounded-full px-3 py-1 text-[11px] font-bold shadow-md', court.is_active ? 'bg-emerald-600 text-white' : 'bg-neutral-600 text-white']">
+                    <span
+                        :class="[
+                            'rounded-full px-3 py-1 text-[11px] font-bold shadow-md',
+                            court.is_active
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-neutral-600 text-white',
+                        ]"
+                    >
                         {{ court.is_active ? 'Online' : 'Offline' }}
                     </span>
                 </div>
@@ -249,36 +281,67 @@ const statusBadgeClass = computed(() => {
 
             <!-- Court Header Body -->
             <div class="p-6 sm:p-8">
-                <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                <div
+                    class="flex flex-col justify-between gap-6 lg:flex-row lg:items-start"
+                >
                     <div class="space-y-3">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-3 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                            <span
+                                class="rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold tracking-wider text-emerald-700 uppercase dark:bg-emerald-950/60 dark:text-emerald-300"
+                            >
                                 {{ court.sport_type }}
                             </span>
-                            <span v-if="court.venue" class="inline-flex items-center gap-1 text-xs font-medium text-neutral-500">
-                                <Building class="w-3.5 h-3.5 text-neutral-400" />
-                                <Link :href="`/admin/venues/${court.venue.id}`" class="hover:text-emerald-600 hover:underline">
+                            <span
+                                v-if="court.venue"
+                                class="inline-flex items-center gap-1 text-xs font-medium text-neutral-500"
+                            >
+                                <Building
+                                    class="h-3.5 w-3.5 text-neutral-400"
+                                />
+                                <Link
+                                    :href="`/admin/venues/${court.venue.id}`"
+                                    class="hover:text-emerald-600 hover:underline"
+                                >
                                     {{ court.venue.name }}
                                 </Link>
                             </span>
                         </div>
 
-                        <h1 class="text-2xl sm:text-3xl font-black text-neutral-900 dark:text-white tracking-tight">{{ court.name }}</h1>
-                        <p v-if="court.description" class="text-sm text-neutral-500 max-w-3xl leading-relaxed">{{ court.description }}</p>
+                        <h1
+                            class="text-2xl font-black tracking-tight text-neutral-900 sm:text-3xl dark:text-white"
+                        >
+                            {{ court.name }}
+                        </h1>
+                        <p
+                            v-if="court.description"
+                            class="max-w-3xl text-sm leading-relaxed text-neutral-500"
+                        >
+                            {{ court.description }}
+                        </p>
 
                         <!-- Quick Pill Badges -->
-                        <div class="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-xs text-neutral-500">
-                            <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                                <Tag class="w-3.5 h-3.5" /> ₱{{ court.base_price }} / hr
+                        <div
+                            class="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-xs text-neutral-500"
+                        >
+                            <span
+                                class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400"
+                            >
+                                <Tag class="h-3.5 w-3.5" /> ₱{{
+                                    court.base_price
+                                }}
+                                / hr
                             </span>
                             <span class="inline-flex items-center gap-1.5">
-                                <Clock class="w-3.5 h-3.5 text-neutral-400" /> {{ court.slot_duration_minutes }} min slots
+                                <Clock class="h-3.5 w-3.5 text-neutral-400" />
+                                {{ court.slot_duration_minutes }} min slots
                             </span>
                             <span class="inline-flex items-center gap-1.5">
-                                <Clock class="w-3.5 h-3.5 text-neutral-400" /> {{ court.buffer_minutes }} min buffer
+                                <Clock class="h-3.5 w-3.5 text-neutral-400" />
+                                {{ court.buffer_minutes }} min buffer
                             </span>
                             <span class="inline-flex items-center gap-1.5">
-                                <Users class="w-3.5 h-3.5 text-neutral-400" /> {{ court.staff.length }} staff assigned
+                                <Users class="h-3.5 w-3.5 text-neutral-400" />
+                                {{ court.staff.length }} staff assigned
                             </span>
                         </div>
                     </div>
@@ -287,36 +350,62 @@ const statusBadgeClass = computed(() => {
         </div>
 
         <!-- Assigned Venue & Specifications Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Assigned Venue Card -->
-            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm space-y-4">
+            <div
+                class="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                        <Building class="w-4 h-4 text-emerald-600" /> Assigned Location
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold tracking-wider text-neutral-900 uppercase dark:text-white"
+                    >
+                        <Building class="h-4 w-4 text-emerald-600" /> Assigned
+                        Location
                     </h3>
-                    <span class="rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                    <span
+                        class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                    >
                         Facility
                     </span>
                 </div>
 
                 <div v-if="court.venue" class="space-y-3 pt-1">
                     <div>
-                        <Link :href="`/admin/venues/${court.venue.id}`" class="text-lg font-bold text-neutral-900 dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                            {{ court.venue.name }} <ArrowUpRight class="w-4 h-4 text-emerald-600" />
+                        <Link
+                            :href="`/admin/venues/${court.venue.id}`"
+                            class="flex items-center gap-1.5 text-lg font-bold text-neutral-900 transition-colors hover:text-emerald-600 dark:text-white dark:hover:text-emerald-400"
+                        >
+                            {{ court.venue.name }}
+                            <ArrowUpRight class="h-4 w-4 text-emerald-600" />
                         </Link>
                     </div>
 
                     <div class="space-y-2 text-xs text-neutral-500">
-                        <div v-if="court.venue.address" class="flex items-start gap-2">
-                            <MapPin class="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5" />
+                        <div
+                            v-if="court.venue.address"
+                            class="flex items-start gap-2"
+                        >
+                            <MapPin
+                                class="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-400"
+                            />
                             <span>{{ court.venue.address }}</span>
                         </div>
-                        <div v-if="court.venue.phone" class="flex items-center gap-2">
-                            <Phone class="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                        <div
+                            v-if="court.venue.phone"
+                            class="flex items-center gap-2"
+                        >
+                            <Phone
+                                class="h-3.5 w-3.5 shrink-0 text-neutral-400"
+                            />
                             <span>{{ court.venue.phone }}</span>
                         </div>
-                        <div v-if="court.venue.email" class="flex items-center gap-2">
-                            <Mail class="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                        <div
+                            v-if="court.venue.email"
+                            class="flex items-center gap-2"
+                        >
+                            <Mail
+                                class="h-3.5 w-3.5 shrink-0 text-neutral-400"
+                            />
                             <span>{{ court.venue.email }}</span>
                         </div>
                     </div>
@@ -328,53 +417,99 @@ const statusBadgeClass = computed(() => {
             </div>
 
             <!-- Pricing & Slot Specs Card -->
-            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm space-y-4">
+            <div
+                class="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                        <Tag class="w-4 h-4 text-emerald-600" /> Pricing &amp; Duration
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold tracking-wider text-neutral-900 uppercase dark:text-white"
+                    >
+                        <Tag class="h-4 w-4 text-emerald-600" /> Pricing &amp;
+                        Duration
                     </h3>
-                    <span class="rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-bold text-neutral-500">
+                    <span
+                        class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-neutral-800"
+                    >
                         Rates
                     </span>
                 </div>
 
-                <div class="space-y-2 text-xs divide-y divide-neutral-100 dark:divide-neutral-800">
+                <div
+                    class="space-y-2 divide-y divide-neutral-100 text-xs dark:divide-neutral-800"
+                >
                     <div class="flex justify-between py-1.5">
                         <span class="text-neutral-500">Base Hourly Rate</span>
-                        <span class="font-bold text-emerald-600 dark:text-emerald-400">₱{{ court.base_price }} / hr</span>
+                        <span
+                            class="font-bold text-emerald-600 dark:text-emerald-400"
+                            >₱{{ court.base_price }} / hr</span
+                        >
                     </div>
                     <div class="flex justify-between py-1.5">
                         <span class="text-neutral-500">Slot Duration</span>
-                        <span class="font-semibold text-neutral-900 dark:text-white">{{ court.slot_duration_minutes }} minutes</span>
+                        <span
+                            class="font-semibold text-neutral-900 dark:text-white"
+                            >{{ court.slot_duration_minutes }} minutes</span
+                        >
                     </div>
                     <div class="flex justify-between py-1.5">
-                        <span class="text-neutral-500">Buffer Between Slots</span>
-                        <span class="font-semibold text-neutral-900 dark:text-white">{{ court.buffer_minutes }} minutes</span>
+                        <span class="text-neutral-500"
+                            >Buffer Between Slots</span
+                        >
+                        <span
+                            class="font-semibold text-neutral-900 dark:text-white"
+                            >{{ court.buffer_minutes }} minutes</span
+                        >
                     </div>
                     <div class="flex justify-between py-1.5">
                         <span class="text-neutral-500">Custom Slot Rates</span>
-                        <span class="font-semibold text-neutral-900 dark:text-white">
-                            {{ court.slot_prices && Object.keys(court.slot_prices).length > 0 ? `${Object.keys(court.slot_prices).length} configured` : 'Default base rate' }}
+                        <span
+                            class="font-semibold text-neutral-900 dark:text-white"
+                        >
+                            {{
+                                court.slot_prices &&
+                                Object.keys(court.slot_prices).length > 0
+                                    ? `${Object.keys(court.slot_prices).length} configured`
+                                    : 'Default base rate'
+                            }}
                         </span>
                     </div>
                 </div>
             </div>
 
             <!-- Assigned Staff Card -->
-            <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm space-y-4">
+            <div
+                class="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                        <Users class="w-4 h-4 text-emerald-600" /> Assigned Staff
+                    <h3
+                        class="flex items-center gap-2 text-sm font-bold tracking-wider text-neutral-900 uppercase dark:text-white"
+                    >
+                        <Users class="h-4 w-4 text-emerald-600" /> Assigned
+                        Staff
                     </h3>
-                    <span class="rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-bold text-neutral-500">
+                    <span
+                        class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-neutral-800"
+                    >
                         {{ court.staff.length }}
                     </span>
                 </div>
 
-                <div v-if="court.staff.length" class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    <div v-for="member in court.staff" :key="member.id" class="flex items-center justify-between p-2 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 text-xs">
-                        <span class="font-semibold text-neutral-900 dark:text-white">{{ member.name }}</span>
-                        <span class="text-neutral-400 text-[11px]">{{ member.email }}</span>
+                <div
+                    v-if="court.staff.length"
+                    class="max-h-40 space-y-2 overflow-y-auto pr-1"
+                >
+                    <div
+                        v-for="member in court.staff"
+                        :key="member.id"
+                        class="flex items-center justify-between rounded-xl bg-neutral-50 p-2 text-xs dark:bg-neutral-800/60"
+                    >
+                        <span
+                            class="font-semibold text-neutral-900 dark:text-white"
+                            >{{ member.name }}</span
+                        >
+                        <span class="text-[11px] text-neutral-400">{{
+                            member.email
+                        }}</span>
                     </div>
                 </div>
                 <div v-else class="py-4 text-xs text-neutral-400 italic">
@@ -386,21 +521,27 @@ const statusBadgeClass = computed(() => {
         <!-- Main Tabs Section: Bookings & Availability Schedule -->
         <section class="space-y-4">
             <!-- Tab Switcher -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-center gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div
+                    class="flex items-center gap-1 rounded-xl border border-neutral-200 bg-neutral-100 p-1 dark:border-neutral-800 dark:bg-neutral-900"
+                >
                     <button
                         type="button"
                         @click="activeTab = 'bookings'"
                         :class="[
                             'flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all duration-200',
                             activeTab === 'bookings'
-                                ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm'
+                                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white'
                                 : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
                         ]"
                     >
-                        <FileText class="w-3.5 h-3.5" />
+                        <FileText class="h-3.5 w-3.5" />
                         Booking Records
-                        <span class="ml-0.5 rounded-full bg-neutral-200 dark:bg-neutral-700 px-1.5 py-0.5 text-[10px] font-bold text-neutral-600 dark:text-neutral-300">
+                        <span
+                            class="ml-0.5 rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-bold text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300"
+                        >
                             {{ bookings.data.length }}
                         </span>
                     </button>
@@ -410,39 +551,41 @@ const statusBadgeClass = computed(() => {
                         :class="[
                             'flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all duration-200',
                             activeTab === 'schedule'
-                                ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-sm'
+                                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-white'
                                 : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
                         ]"
                     >
-                        <Calendar class="w-3.5 h-3.5" />
+                        <Calendar class="h-3.5 w-3.5" />
                         Availability Schedule
                     </button>
                 </div>
 
                 <!-- Bottom Action Buttons: Edit Court & Rates, Photos, New Booking -->
-                <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <div class="flex shrink-0 flex-wrap items-center gap-2.5">
                     <button
                         type="button"
                         @click="showEditCourtModal = true"
-                        class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2.5 text-xs font-bold text-neutral-700 dark:text-neutral-200 shadow-sm transition-all hover:border-emerald-500 hover:text-emerald-600 cursor-pointer"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs font-bold text-neutral-700 shadow-sm transition-all hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
                     >
-                        <Pencil class="w-4 h-4 text-emerald-600" /> Edit Court &amp; Rates
+                        <Pencil class="h-4 w-4 text-emerald-600" /> Edit Court
+                        &amp; Rates
                     </button>
                     <button
                         type="button"
                         @click="showImageModal = true"
-                        class="inline-flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-2.5 text-xs font-bold text-neutral-700 dark:text-neutral-200 shadow-sm transition-all hover:border-emerald-500 hover:text-emerald-600 cursor-pointer"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs font-bold text-neutral-700 shadow-sm transition-all hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
                     >
-                        <ImageIcon class="w-4 h-4 text-emerald-600" /> Photos ({{ court.images.length }})
+                        <ImageIcon class="h-4 w-4 text-emerald-600" /> Photos
+                        ({{ court.images.length }})
                     </button>
                     <button
                         v-if="activeTab === 'bookings'"
                         type="button"
                         @click="isBookingModalOpen = true"
                         :disabled="!court.is_active"
-                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <CalendarPlus class="w-4 h-4" /> New Booking
+                        <CalendarPlus class="h-4 w-4" /> New Booking
                     </button>
                 </div>
             </div>
@@ -450,20 +593,28 @@ const statusBadgeClass = computed(() => {
             <!-- BOOKINGS TAB PANEL -->
             <div v-if="activeTab === 'bookings'" class="space-y-4">
                 <!-- Filters -->
-                <div class="p-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
-                    <div class="flex flex-col sm:flex-row gap-3">
+                <div
+                    class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                >
+                    <div class="flex flex-col gap-3 sm:flex-row">
                         <div class="relative flex-1">
-                            <Search class="w-4 h-4 absolute left-3 top-2.5 text-neutral-400" />
+                            <Search
+                                class="absolute top-2.5 left-3 h-4 w-4 text-neutral-400"
+                            />
                             <input
                                 v-model="search"
                                 @keyup.enter="applyFilters"
                                 type="text"
                                 placeholder="Search reservations by name, email, phone, or ref code..."
-                                class="w-full pl-9 pr-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                                class="w-full rounded-xl border border-neutral-300 bg-neutral-50 py-2 pr-3 pl-9 text-xs text-neutral-900 focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                             />
                         </div>
 
-                        <select v-model="statusFilter" @change="applyFilters" class="px-3 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-xs text-neutral-900 dark:text-white focus:ring-2 focus:ring-emerald-500">
+                        <select
+                            v-model="statusFilter"
+                            @change="applyFilters"
+                            class="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2 text-xs text-neutral-900 focus:ring-2 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                        >
                             <option value="">All Statuses</option>
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
@@ -474,81 +625,147 @@ const statusBadgeClass = computed(() => {
                         </select>
 
                         <div class="flex gap-2">
-                            <button @click="applyFilters" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700">Search</button>
-                            <button @click="clearFilters" class="px-3 py-1.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded-lg text-xs font-semibold">Clear</button>
+                            <button
+                                @click="applyFilters"
+                                class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                            >
+                                Search
+                            </button>
+                            <button
+                                @click="clearFilters"
+                                class="rounded-lg bg-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                            >
+                                Clear
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Bookings Table -->
-                <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                <div
+                    class="overflow-x-auto rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                >
+                    <table class="w-full border-collapse text-left text-xs">
                         <thead>
-                            <tr class="border-b border-neutral-100 dark:border-neutral-800 text-neutral-400 font-semibold uppercase">
-                                <th class="py-3 px-3">Ref</th>
-                                <th class="py-3 px-3">Customer</th>
-                                <th class="py-3 px-3">Date</th>
-                                <th class="py-3 px-3">Time Slots</th>
-                                <th class="py-3 px-3">Amount</th>
-                                <th class="py-3 px-3">Status</th>
-                                <th class="py-3 px-3">Receipt</th>
-                                <th class="py-3 px-3 text-right">Actions</th>
+                            <tr
+                                class="border-b border-neutral-100 font-semibold text-neutral-400 uppercase dark:border-neutral-800"
+                            >
+                                <th class="px-3 py-3">Ref</th>
+                                <th class="px-3 py-3">Customer</th>
+                                <th class="px-3 py-3">Date</th>
+                                <th class="px-3 py-3">Time Slots</th>
+                                <th class="px-3 py-3">Amount</th>
+                                <th class="px-3 py-3">Status</th>
+                                <th class="px-3 py-3">Receipt</th>
+                                <th class="px-3 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                        <tbody
+                            class="divide-y divide-neutral-100 dark:divide-neutral-800"
+                        >
                             <tr
                                 v-for="b in bookings.data"
                                 :key="b.id"
                                 @click="openBookingDetails(b)"
-                                class="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer"
+                                class="cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
                             >
-                                <td class="py-3 px-3 font-mono font-bold text-neutral-900 dark:text-white whitespace-nowrap">{{ b.reference_code }}</td>
-                                <td class="py-3 px-3">
-                                    <div class="font-semibold text-neutral-900 dark:text-white">{{ b.name }}</div>
-                                    <div class="text-neutral-400 text-[11px]">{{ b.email }}</div>
+                                <td
+                                    class="px-3 py-3 font-mono font-bold whitespace-nowrap text-neutral-900 dark:text-white"
+                                >
+                                    {{ b.reference_code }}
                                 </td>
-                                <td class="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400">{{ b.date }}</td>
-                                <td class="py-3 px-3 font-mono text-[11px] text-neutral-500">{{ b.time_slots ? b.time_slots.join(', ') : 'N/A' }}</td>
-                                <td class="py-3 px-3 font-bold text-neutral-900 dark:text-white">₱{{ b.total_price }}</td>
-                                <td class="py-3 px-3">
+                                <td class="px-3 py-3">
+                                    <div
+                                        class="font-semibold text-neutral-900 dark:text-white"
+                                    >
+                                        {{ b.name }}
+                                    </div>
+                                    <div class="text-[11px] text-neutral-400">
+                                        {{ b.email }}
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-3 py-3 font-semibold text-emerald-600 dark:text-emerald-400"
+                                >
+                                    {{ b.date }}
+                                </td>
+                                <td
+                                    class="px-3 py-3 font-mono text-[11px] text-neutral-500"
+                                >
+                                    {{
+                                        b.time_slots
+                                            ? b.time_slots.join(', ')
+                                            : 'N/A'
+                                    }}
+                                </td>
+                                <td
+                                    class="px-3 py-3 font-bold text-neutral-900 dark:text-white"
+                                >
+                                    ₱{{ b.total_price }}
+                                </td>
+                                <td class="px-3 py-3">
                                     <span
                                         :class="[
-                                            'px-2 py-0.5 rounded-full text-[10px] font-bold capitalize',
-                                            b.status === 'approved' || b.status === 'confirmed' || b.status === 'completed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
-                                            b.status === 'pending' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                            'rounded-full px-2 py-0.5 text-[10px] font-bold capitalize',
+                                            b.status === 'approved' ||
+                                            b.status === 'confirmed' ||
+                                            b.status === 'completed'
+                                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                                : b.status === 'pending'
+                                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                                  : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
                                         ]"
                                     >
                                         {{ b.status }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-3" @click.stop>
+                                <td class="px-3 py-3" @click.stop>
                                     <a
                                         v-if="b.receipt_url"
                                         :href="b.receipt_url"
                                         target="_blank"
-                                        class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                                        class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
                                     >
-                                        <FileText class="w-3.5 h-3.5" /> View
+                                        <FileText class="h-3.5 w-3.5" /> View
                                     </a>
-                                    <span v-else class="text-neutral-400 text-[11px]">N/A</span>
+                                    <span
+                                        v-else
+                                        class="text-[11px] text-neutral-400"
+                                        >N/A</span
+                                    >
                                 </td>
-                                <td class="py-3 px-3 text-right" @click.stop>
-                                    <div class="flex items-center justify-end gap-1">
+                                <td class="px-3 py-3 text-right" @click.stop>
+                                    <div
+                                        class="flex items-center justify-end gap-1"
+                                    >
                                         <button
-                                            v-if="b.status !== 'approved' && b.status !== 'confirmed'"
-                                            @click="updateBookingStatus(b.id, 'approved')"
+                                            v-if="
+                                                b.status !== 'approved' &&
+                                                b.status !== 'confirmed'
+                                            "
+                                            @click="
+                                                updateBookingStatus(
+                                                    b.id,
+                                                    'approved',
+                                                )
+                                            "
                                             class="p-1 text-emerald-600 hover:text-emerald-700"
                                             title="Approve"
                                         >
-                                            <CheckCircle class="w-4 h-4" />
+                                            <CheckCircle class="h-4 w-4" />
                                         </button>
                                         <button
                                             v-if="b.status !== 'rejected'"
-                                            @click="updateBookingStatus(b.id, 'rejected')"
+                                            @click="
+                                                updateBookingStatus(
+                                                    b.id,
+                                                    'rejected',
+                                                )
+                                            "
                                             class="p-1 text-rose-600 hover:text-rose-700"
                                             title="Reject"
                                         >
-                                            <XCircle class="w-4 h-4" />
+                                            <XCircle class="h-4 w-4" />
                                         </button>
                                         <button
                                             type="button"
@@ -556,38 +773,54 @@ const statusBadgeClass = computed(() => {
                                             class="p-1 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                                             title="View Details"
                                         >
-                                            <ArrowUpRight class="w-4 h-4" />
+                                            <ArrowUpRight class="h-4 w-4" />
                                         </button>
-                                        <button v-if="canDelete" @click="deleteBooking(b.id)" class="p-1 text-rose-400 hover:text-rose-600">
-                                            <Trash2 class="w-4 h-4" />
+                                        <button
+                                            v-if="canDelete"
+                                            @click="deleteBooking(b.id)"
+                                            class="p-1 text-rose-400 hover:text-rose-600"
+                                        >
+                                            <Trash2 class="h-4 w-4" />
                                         </button>
                                     </div>
                                 </td>
                             </tr>
 
                             <tr v-if="bookings.data.length === 0">
-                                <td colspan="8" class="py-8 text-center text-xs text-neutral-400">No booking records found for {{ court.name }}.</td>
+                                <td
+                                    colspan="8"
+                                    class="py-8 text-center text-xs text-neutral-400"
+                                >
+                                    No booking records found for
+                                    {{ court.name }}.
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="bookings.last_page > 1" class="flex justify-center gap-1 pt-2">
+                <div
+                    v-if="bookings.last_page > 1"
+                    class="flex justify-center gap-1 pt-2"
+                >
                     <template v-for="link in bookings.links" :key="link.label">
                         <Link
                             v-if="link.url"
                             :href="link.url"
                             :class="[
-                                'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                                link.active ? 'bg-emerald-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-emerald-50 dark:hover:bg-neutral-700',
+                                'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
+                                link.active
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-neutral-100 text-neutral-600 hover:bg-emerald-50 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700',
                             ]"
-                            v-html="link.label"
                             preserve-scroll
-                        />
+                        >
+                            <span v-html="link.label" />
+                        </Link>
                         <span
                             v-else
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-300 dark:text-neutral-600"
+                            class="rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-300 dark:text-neutral-600"
                             v-html="link.label"
                         />
                     </template>

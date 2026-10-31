@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { AreaChart as AreaChartIcon } from '@lucide/vue';
 import {
     Chart as ChartJS,
@@ -12,6 +11,7 @@ import {
     Legend,
     Filler,
 } from 'chart.js';
+import { ref, computed } from 'vue';
 import { Line } from 'vue-chartjs';
 
 ChartJS.register(
@@ -22,7 +22,7 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
 );
 
 export interface DailyTrendItem {
@@ -48,13 +48,14 @@ const timeframeOptions = [
 const filteredTrend = computed(() => {
     const limit = parseInt(selectedTimeframe.value, 10);
     const data = props.dailyTrend || [];
+
     return data.slice(-limit);
 });
 
 const chartData = computed(() => {
-    const labels = filteredTrend.value.map(item => item.label);
-    const confirmedData = filteredTrend.value.map(item => item.confirmed);
-    const revenueData = filteredTrend.value.map(item => item.revenue);
+    const labels = filteredTrend.value.map((item) => item.label);
+    const confirmedData = filteredTrend.value.map((item) => item.confirmed);
+    const revenueData = filteredTrend.value.map((item) => item.revenue);
 
     return {
         labels,
@@ -68,6 +69,7 @@ const chartData = computed(() => {
                     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
                     gradient.addColorStop(0, 'rgba(16, 185, 129, 0.45)');
                     gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
                     return gradient;
                 },
                 fill: true,
@@ -87,6 +89,7 @@ const chartData = computed(() => {
                     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
                     gradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
                     gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+
                     return gradient;
                 },
                 fill: true,
@@ -126,9 +129,11 @@ const chartOptions = computed(() => {
                     label: (context: any) => {
                         const label = context.dataset.label || '';
                         const val = context.parsed.y;
+
                         if (label.includes('Revenue')) {
                             return `${label}: ₱${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
                         }
+
                         return `${label}: ${val}`;
                     },
                 },
@@ -174,17 +179,32 @@ const chartOptions = computed(() => {
 </script>
 
 <template>
-    <div class="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-md space-y-4">
+    <div
+        class="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+    >
         <!-- Chart Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div
+            class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+        >
             <div class="space-y-1">
-                <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400">
-                    <AreaChartIcon class="w-4 h-4 text-emerald-500" />
+                <div
+                    class="flex items-center gap-2 text-xs font-semibold text-neutral-400"
+                >
+                    <AreaChartIcon class="h-4 w-4 text-emerald-500" />
                     <span>Area Chart</span>
                 </div>
-                <h3 class="text-lg font-black text-neutral-900 dark:text-white tracking-tight">Area Chart - Interactive</h3>
+                <h3
+                    class="text-lg font-black tracking-tight text-neutral-900 dark:text-white"
+                >
+                    Area Chart - Interactive
+                </h3>
                 <p class="text-xs text-neutral-500">
-                    Showing confirmed bookings & revenue performance for the {{ timeframeOptions.find(o => o.value === selectedTimeframe)?.label.toLowerCase() }}.
+                    Showing confirmed bookings & revenue performance for the
+                    {{
+                        timeframeOptions
+                            .find((o) => o.value === selectedTimeframe)
+                            ?.label.toLowerCase()
+                    }}.
                 </p>
             </div>
 
@@ -192,9 +212,13 @@ const chartOptions = computed(() => {
             <div>
                 <select
                     v-model="selectedTimeframe"
-                    class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 text-xs font-bold text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
+                    class="cursor-pointer rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-bold text-neutral-800 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
                 >
-                    <option v-for="opt in timeframeOptions" :key="opt.value" :value="opt.value">
+                    <option
+                        v-for="opt in timeframeOptions"
+                        :key="opt.value"
+                        :value="opt.value"
+                    >
                         {{ opt.label }}
                     </option>
                 </select>
@@ -202,19 +226,29 @@ const chartOptions = computed(() => {
         </div>
 
         <!-- Chart Body -->
-        <div class="h-72 w-full relative pt-2">
+        <div class="relative h-72 w-full pt-2">
             <Line :data="chartData" :options="chartOptions" />
         </div>
 
         <!-- Bottom Legend Dots -->
-        <div class="flex items-center justify-center gap-6 pt-2 text-xs font-semibold">
+        <div
+            class="flex items-center justify-center gap-6 pt-2 text-xs font-semibold"
+        >
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
-                <span class="text-neutral-700 dark:text-neutral-300">Confirmed Bookings</span>
+                <span
+                    class="h-2.5 w-2.5 rounded-sm bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                ></span>
+                <span class="text-neutral-700 dark:text-neutral-300"
+                    >Confirmed Bookings</span
+                >
             </div>
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-sm bg-cyan-500 shadow-sm shadow-cyan-500/50"></span>
-                <span class="text-neutral-700 dark:text-neutral-300">Revenue Stream (₱)</span>
+                <span
+                    class="h-2.5 w-2.5 rounded-sm bg-cyan-500 shadow-sm shadow-cyan-500/50"
+                ></span>
+                <span class="text-neutral-700 dark:text-neutral-300"
+                    >Revenue Stream (₱)</span
+                >
             </div>
         </div>
     </div>

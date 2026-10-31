@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
 import { LogOut } from '@lucide/vue';
+import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
@@ -101,18 +101,26 @@ const user = computed(() => page.props.auth.user);
                 >
             </div>
         </Form>
-        <div class="pt-6 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-4">
+        <div
+            class="flex items-center justify-between gap-4 border-t border-neutral-200 pt-6 dark:border-neutral-800"
+        >
             <div>
-                <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Account Session</h3>
-                <p class="text-xs text-neutral-500">Sign out of your account on this device.</p>
+                <h3
+                    class="text-sm font-semibold text-neutral-900 dark:text-white"
+                >
+                    Account Session
+                </h3>
+                <p class="text-xs text-neutral-500">
+                    Sign out of your account on this device.
+                </p>
             </div>
             <Link
                 :href="logout()"
                 method="post"
                 as="button"
-                class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-xl transition-colors shrink-0"
+                class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-600 transition-colors hover:bg-rose-500/20 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
             >
-                <LogOut class="w-4 h-4" />
+                <LogOut class="h-4 w-4" />
                 <span>Log Out</span>
             </Link>
         </div>

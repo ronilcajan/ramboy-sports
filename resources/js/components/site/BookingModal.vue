@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
+import { useCourtAvailability } from '@/composables/useCourtAvailability';
 import { useSite } from '@/composables/useSite';
 import type { PublicCourt } from '@/types';
-import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
 import {
     formatDuration,
     formatSlotRange,
     getMergedTimeSlots,
     isSlotPassed,
 } from '@/utils/timeSlots';
-import { useCourtAvailability } from '@/composables/useCourtAvailability';
 
 const props = defineProps<{
     court?: PublicCourt | null;
@@ -42,13 +42,18 @@ const { fetchAvailability: loadAvailability, slotsForCourt } =
     useCourtAvailability();
 
 const activeVenue = computed<CatalogVenue | null>(() => {
-    if (props.venue) return props.venue;
+    if (props.venue) {
+        return props.venue;
+    }
+
     if (selectedVenueId.value && props.venues) {
         return props.venues.find((v) => v.id === selectedVenueId.value) || null;
     }
+
     if (props.court?.venue) {
         return props.court.venue as any;
     }
+
     return null;
 });
 
@@ -67,12 +72,15 @@ const availableCourts = computed<PublicCourt[]>(() => {
     if (props.venue?.courts && props.venue.courts.length > 0) {
         return props.venue.courts;
     }
+
     if (activeVenue.value?.courts && activeVenue.value.courts.length > 0) {
         return activeVenue.value.courts;
     }
+
     if (props.court) {
         return [props.court];
     }
+
     return [];
 });
 
@@ -88,12 +96,19 @@ const selectedCourt = computed<PublicCourt | null>(() => {
         const found = sortedAvailableCourts.value.find(
             (c) => c.id === selectedCourtId.value,
         );
-        if (found) return found;
+
+        if (found) {
+            return found;
+        }
     }
+
     // Only a court the modal was explicitly opened for counts as pre-selected. Nothing
     // else falls back to a default — a silently chosen court is one the customer never
     // saw themselves pick, which is how people reserved the wrong court.
-    if (props.court) return props.court;
+    if (props.court) {
+        return props.court;
+    }
+
     return null;
 });
 
@@ -142,12 +157,14 @@ const wizardHeading = computed<{ title: string; subtitle: string }>(() => {
             subtitle: 'Pick your date, court, and preferred time slots.',
         };
     }
+
     if (currentWizardStep.value === 2) {
         return {
             title: 'Your Details',
             subtitle: 'Provide your contact information to reserve the court.',
         };
     }
+
     return {
         title: 'Review & Confirm',
         subtitle: 'Check your reservation, then confirm your booking.',
@@ -162,14 +179,18 @@ const receiptError = ref('');
 function handleReceiptUpload(e: Event) {
     const target = e.target as HTMLInputElement;
     const file = target.files?.[0];
+
     if (!file) {
         return;
     }
+
     if (!file.type.startsWith('image/')) {
         receiptError.value =
             'Please select a valid image file (PNG, JPG, WEBP).';
+
         return;
     }
+
     receiptError.value = '';
     receiptFile.value = file;
 
@@ -200,27 +221,34 @@ const availableTimeSlots = computed(() => {
 function parseSlotHour(slot: string): number {
     const [time, period] = slot.split(' ');
     let hour = parseInt(time.split(':')[0], 10);
+
     if (period === 'PM' && hour !== 12) {
         hour += 12;
     }
+
     if (period === 'AM' && hour === 12) {
         hour = 0;
     }
+
     return hour;
 }
 
 // Time-of-day period label used to group slots into sections
 function slotPeriodLabel(slot: string): string {
     const h = parseSlotHour(slot);
+
     if (h >= 5 && h < 12) {
         return 'Morning';
     }
+
     if (h >= 12 && h < 17) {
         return 'Afternoon';
     }
+
     if (h >= 17 && h < 21) {
         return 'Evening';
     }
+
     return 'Night';
 }
 
@@ -228,10 +256,12 @@ function slotPeriodLabel(slot: string): string {
 const groupedTimeSlots = computed<{ period: string; slots: string[] }[]>(() => {
     const order = ['Morning', 'Afternoon', 'Evening', 'Night'];
     const groups: Record<string, string[]> = {};
+
     for (const slot of availableTimeSlots.value) {
         const period = slotPeriodLabel(slot);
         (groups[period] ??= []).push(slot);
     }
+
     return order
         .filter((period) => groups[period]?.length)
         .map((period) => ({ period, slots: groups[period] }));
@@ -242,6 +272,7 @@ const calculatedDuration = computed(() => {
     if (!selectedCourt.value) {
         return 0;
     }
+
     return (
         form.value.time.length *
         (selectedCourt.value.slot_duration_minutes || 60)
@@ -254,24 +285,32 @@ const calculatedDurationLabel = computed<string>(() => {
     const rounded = Number.isInteger(hours)
         ? hours
         : parseFloat(hours.toFixed(1));
+
     return `${rounded} ${rounded === 1 ? 'hour' : 'hours'}`;
 });
 
 // Get price for a specific time slot (custom override or fallback to base_price)
 function getSlotPriceForCourt(slot: string): number {
-    if (!selectedCourt.value) return 0;
+    if (!selectedCourt.value) {
+        return 0;
+    }
+
     const customPrices = selectedCourt.value.slot_prices;
+
     if (
         customPrices &&
         customPrices[slot] !== undefined &&
         customPrices[slot] !== null
     ) {
         const val = parseFloat(String(customPrices[slot]));
+
         if (!isNaN(val) && val > 0) {
             return val;
         }
     }
+
     const base = parseFloat(selectedCourt.value.base_price || '0');
+
     return isNaN(base) ? 0 : base;
 }
 
@@ -280,10 +319,12 @@ const calculatedPrice = computed(() => {
     if (!selectedCourt.value || form.value.time.length === 0) {
         return '0.00';
     }
+
     const total = form.value.time.reduce(
         (sum, slot) => sum + getSlotPriceForCourt(slot),
         0,
     );
+
     return total.toFixed(2);
 });
 
@@ -302,6 +343,7 @@ const selectedSlotsLabel = computed<string>(() =>
 /** Same, but falling back to the slots the server confirmed once a booking exists. */
 const confirmedSlotsLabel = computed<string>(() => {
     const slots = bookingDetails.value?.time_slots ?? form.value.time;
+
     return slots
         .map((slot: string) =>
             formatSlotRange(
@@ -328,15 +370,18 @@ const availablePaymentMethods = computed<
     }[]
 >(() => {
     const pm = activeVenue.value?.payment_methods;
+
     if (!pm) {
         return [];
     }
+
     const list: {
         key: 'gcash' | 'maya';
         label: string;
         number: string;
         qr_url?: string | null;
     }[] = [];
+
     if (pm.gcash) {
         list.push({
             key: 'gcash',
@@ -345,6 +390,7 @@ const availablePaymentMethods = computed<
             qr_url: pm.gcash.qr_url,
         });
     }
+
     if (pm.maya) {
         list.push({
             key: 'maya',
@@ -353,6 +399,7 @@ const availablePaymentMethods = computed<
             qr_url: pm.maya.qr_url,
         });
     }
+
     return list;
 });
 
@@ -381,13 +428,18 @@ function toDateKey(d: Date): string {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
+
     return `${yyyy}-${mm}-${dd}`;
 }
 
 // Safely parse a YYYY-MM-DD date string into a local Date object without UTC drift
 function parseLocalDate(dateStr: string): Date {
-    if (!dateStr) return new Date();
+    if (!dateStr) {
+        return new Date();
+    }
+
     const parts = dateStr.split('-').map(Number);
+
     if (
         parts.length === 3 &&
         !isNaN(parts[0]) &&
@@ -396,21 +448,11 @@ function parseLocalDate(dateStr: string): Date {
     ) {
         return new Date(parts[0], parts[1] - 1, parts[2]);
     }
+
     return new Date(dateStr);
 }
 
 // Formatted selected date label with day of week (e.g. Mon, Jul 27, 2026)
-const formattedSelectedDateLabel = computed(() => {
-    if (!form.value.date) return '';
-    const d = parseLocalDate(form.value.date);
-    return d.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
-});
-
 // Local YYYY-MM-DD date string for min validation
 const todayDateString = computed(() => toDateKey(new Date()));
 
@@ -424,9 +466,11 @@ const visibleDays = computed<Date[]>(() => {
     const base = new Date();
     base.setHours(0, 0, 0, 0);
     base.setDate(base.getDate() + weekOffset.value * 7);
+
     return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(base);
         d.setDate(base.getDate() + i);
+
         return d;
     });
 });
@@ -438,12 +482,15 @@ const monthYearLabel = computed(() => {
     const last = days[6];
     const monthName = (d: Date) =>
         d.toLocaleDateString('en-US', { month: 'short' });
+
     if (first.getMonth() === last.getMonth()) {
         return `${monthName(first)} ${first.getFullYear()}`;
     }
+
     if (first.getFullYear() === last.getFullYear()) {
         return `${monthName(first)} – ${monthName(last)} ${last.getFullYear()}`;
     }
+
     return `${monthName(first)} ${first.getFullYear()} – ${monthName(last)} ${last.getFullYear()}`;
 });
 
@@ -488,15 +535,20 @@ const courtScroller = ref<HTMLElement | null>(null);
 
 function scrollCourts(dir: 'prev' | 'next'): void {
     const el = courtScroller.value;
+
     if (!el) {
         return;
     }
+
     el.scrollBy({ left: dir === 'next' ? 220 : -220, behavior: 'smooth' });
 }
 
 // Fetch real-time court availability from server
 async function fetchRealtimeAvailability() {
-    if (!form.value.date) return;
+    if (!form.value.date) {
+        return;
+    }
+
     await loadAvailability({ date: form.value.date });
 }
 
@@ -506,7 +558,10 @@ function getCourtBookedSlots(courtId: number): string[] {
 }
 
 function isSlotBooked(slot: string): boolean {
-    if (!selectedCourt.value) return false;
+    if (!selectedCourt.value) {
+        return false;
+    }
+
     return getCourtBookedSlots(selectedCourt.value.id).includes(slot);
 }
 
@@ -515,6 +570,7 @@ function isCourtFullyBooked(court: PublicCourt): boolean {
     const unavailable = availableTimeSlots.value.filter(
         (slot) => booked.includes(slot) || isSlotPassed(form.value.date, slot),
     );
+
     return unavailable.length >= availableTimeSlots.value.length;
 }
 
@@ -550,8 +606,10 @@ watch(
             // for is pre-selected; opening on a venue leaves the court blank so the
             // customer makes the choice deliberately.
             selectedCourtId.value = null;
+
             if (props.court) {
                 selectedCourtId.value = props.court.id;
+
                 if (props.court.venue) {
                     selectedVenueId.value = props.court.venue.id;
                 } else if (props.venue) {
@@ -604,6 +662,7 @@ watch(
                 form.value.name = '';
                 form.value.email = '';
             }
+
             form.value.phone = '';
 
             await fetchRealtimeAvailability();
@@ -647,6 +706,7 @@ onUnmounted(() => {
     if (typeof window !== 'undefined') {
         window.removeEventListener('keydown', handleKeydown);
     }
+
     if (typeof document !== 'undefined') {
         document.body.style.overflow = '';
     }
@@ -681,6 +741,7 @@ function validateStep1(): boolean {
         const selected = parseLocalDate(form.value.date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
         if (selected < today) {
             errors.value.date = 'Date cannot be in the past.';
             isValid = false;
@@ -694,6 +755,7 @@ function validateStep1(): boolean {
         const passedSlots = form.value.time.filter((slot) =>
             isSlotPassed(form.value.date, slot),
         );
+
         if (passedSlots.length > 0) {
             errors.value.time =
                 'One or more selected time slots have already passed. Please select an upcoming slot.';
@@ -756,6 +818,7 @@ function prevStep() {
 // Persist booking to database
 function handleSubmit() {
     submissionError.value = null;
+
     if (!validateStep1() || !validateStep2()) {
         return;
     }
@@ -774,6 +837,7 @@ function handleSubmit() {
     form.value.time.forEach((t) => formData.append('time[]', t));
     formData.append('notes', form.value.notes);
     formData.append('transaction_code', form.value.transaction_code);
+
     if (receiptFile.value) {
         formData.append('receipt', receiptFile.value);
     }
@@ -791,8 +855,10 @@ function handleSubmit() {
             const errData = await res
                 .json()
                 .catch(() => ({ message: 'Failed to submit booking.' }));
+
             throw errData;
         }
+
         return res.json();
     });
 
@@ -834,24 +900,30 @@ function handleSubmit() {
                 if (err.errors.name) {
                     errors.value.name = err.errors.name[0];
                 }
+
                 if (err.errors.email) {
                     errors.value.email = err.errors.email[0];
                 }
+
                 if (err.errors.phone) {
                     errors.value.phone = err.errors.phone[0];
                 }
+
                 if (err.errors.date) {
                     errors.value.date = err.errors.date[0];
                     currentWizardStep.value = 1;
                 }
+
                 if (err.errors.time) {
                     errors.value.time = err.errors.time[0];
                     currentWizardStep.value = 1;
                 }
+
                 if (err.errors.court_id) {
                     errors.value.court = err.errors.court_id[0];
                     currentWizardStep.value = 1;
                 }
+
                 if (err.errors.receipt) {
                     receiptError.value = err.errors.receipt[0];
                     currentWizardStep.value = 3;
@@ -874,12 +946,14 @@ function getBrandColor(): string {
     if (typeof document === 'undefined') {
         return '#0f766e';
     }
+
     const el = document.createElement('span');
     el.className = 'text-brand';
     el.style.cssText = 'position:absolute;opacity:0;pointer-events:none';
     document.body.appendChild(el);
     const color = getComputedStyle(el).color;
     document.body.removeChild(el);
+
     return color || '#0f766e';
 }
 
@@ -922,9 +996,11 @@ async function downloadVoucher() {
     canvas.width = W * scale;
     canvas.height = H * scale;
     const ctx = canvas.getContext('2d');
+
     if (!ctx) {
         return;
     }
+
     ctx.scale(scale, scale);
 
     // Card background
@@ -937,6 +1013,7 @@ async function downloadVoucher() {
     ctx.fillRect(0, 0, W, headerHeight);
 
     const logoUrl = siteLogo.value;
+
     try {
         const logoImg = await loadImage(logoUrl);
         const logoSize = 44;
@@ -991,6 +1068,7 @@ async function downloadVoucher() {
 
     // QR code
     let y = 176;
+
     if (qrSrc) {
         try {
             const qrImg = await loadImage(qrSrc);
@@ -1007,6 +1085,7 @@ async function downloadVoucher() {
             // QR failed to load — continue without it
         }
     }
+
     ctx.fillStyle = '#6b7280';
     ctx.textAlign = 'center';
     ctx.font = '400 12px Arial, sans-serif';
@@ -1022,6 +1101,7 @@ async function downloadVoucher() {
         ['Time', times],
         ['Duration', duration],
     ];
+
     for (const [label, value] of rows) {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#6b7280';
@@ -1062,6 +1142,7 @@ async function downloadVoucher() {
         'Staff may cancel it at any time. You will receive a confirmation',
         'email, or log in to track your booking status anytime.',
     ];
+
     for (const line of disclaimer) {
         ctx.fillText(line, W / 2, y);
         y += 16;
@@ -1674,7 +1755,11 @@ async function downloadVoucher() {
                                                     :key="slot"
                                                     class="relative flex flex-col items-center justify-center rounded-lg border p-2 text-center transition-all select-none"
                                                     :class="[
-                                                        isSlotBooked(slot) || isSlotPassed(form.date, slot)
+                                                        isSlotBooked(slot) ||
+                                                        isSlotPassed(
+                                                            form.date,
+                                                            slot,
+                                                        )
                                                             ? 'pointer-events-none cursor-not-allowed border-line bg-surface/30 opacity-40'
                                                             : form.time.includes(
                                                                     slot,
@@ -1688,7 +1773,13 @@ async function downloadVoucher() {
                                                         :value="slot"
                                                         v-model="form.time"
                                                         :disabled="
-                                                            isSlotBooked(slot) || isSlotPassed(form.date, slot)
+                                                            isSlotBooked(
+                                                                slot,
+                                                            ) ||
+                                                            isSlotPassed(
+                                                                form.date,
+                                                                slot,
+                                                            )
                                                         "
                                                         class="sr-only"
                                                     />
@@ -1721,7 +1812,10 @@ async function downloadVoucher() {
                                                     </span>
                                                     <span
                                                         v-else-if="
-                                                            isSlotPassed(form.date, slot)
+                                                            isSlotPassed(
+                                                                form.date,
+                                                                slot,
+                                                            )
                                                         "
                                                         class="mt-0.5 text-[8px] font-bold tracking-tight text-content-muted/70 uppercase"
                                                     >

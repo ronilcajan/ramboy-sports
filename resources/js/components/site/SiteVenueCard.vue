@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
 import {
     MapPin,
     Phone,
@@ -9,6 +8,7 @@ import {
     ZoomIn,
     Building,
 } from '@lucide/vue';
+import { ref, computed } from 'vue';
 import VenueImageViewer from '@/components/site/VenueImageViewer.vue';
 import type { PublicCourt, PublicVenue } from '@/types';
 
@@ -32,9 +32,11 @@ const isViewerOpen = ref(false);
 
 const imageList = computed(() => {
     const list: string[] = [];
+
     if (props.venue.cover_image_url) {
         list.push(props.venue.cover_image_url);
     }
+
     if (props.venue.courts) {
         props.venue.courts.forEach((c) => {
             if (c.primary_image_url && !list.includes(c.primary_image_url)) {
@@ -42,6 +44,7 @@ const imageList = computed(() => {
             }
         });
     }
+
     return list;
 });
 </script>

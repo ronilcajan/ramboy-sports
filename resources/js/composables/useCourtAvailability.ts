@@ -62,9 +62,7 @@ export const useCourtAvailability = (): UseCourtAvailabilityReturn => {
             const {
                 booked_slots: bookedSlots,
                 booked_slot_customers: bookedCustomers,
-            } = (await http.submit(
-                availability({ query }),
-            )) as {
+            } = (await http.submit(availability({ query }))) as {
                 booked_slots: BookedSlotsByCourt;
                 booked_slot_customers?: BookedSlotCustomersByCourt;
             };
@@ -87,9 +85,11 @@ export const useCourtAvailability = (): UseCourtAvailabilityReturn => {
         slot: string,
     ): string | null => {
         const courtMap = bookedSlotCustomersByCourt.value[String(courtId)];
+
         if (!courtMap) {
             return null;
         }
+
         return courtMap[slot] ?? courtMap[slot.trim()] ?? null;
     };
 

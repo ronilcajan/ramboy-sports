@@ -29,10 +29,7 @@ defineProps<{
 <template>
     <Head title="Log in" />
 
-    <div
-        v-if="status"
-        class="mb-4 text-center text-sm font-medium text-brand"
-    >
+    <div v-if="status" class="mb-4 text-center text-sm font-medium text-brand">
         {{ status }}
     </div>
 
@@ -92,7 +89,7 @@ defineProps<{
 
             <Button
                 type="submit"
-                class="mt-4 w-full bg-brand text-brand-foreground font-bold shadow-lg shadow-brand/20 hover:bg-brand/90 focus-visible:ring-brand border-0 transition-all duration-200"
+                class="mt-4 w-full border-0 bg-brand font-bold text-brand-foreground shadow-lg shadow-brand/20 transition-all duration-200 hover:bg-brand/90 focus-visible:ring-brand"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"

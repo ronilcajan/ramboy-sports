@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
-import SiteCourtCard from '@/components/site/SiteCourtCard.vue';
 import BookingModal from '@/components/site/BookingModal.vue';
-import VenueAvailabilitySchedule from '@/components/site/VenueAvailabilitySchedule.vue';
+import SiteCourtCard from '@/components/site/SiteCourtCard.vue';
 import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
+import VenueAvailabilitySchedule from '@/components/site/VenueAvailabilitySchedule.vue';
 import { courts as courtsRoute } from '@/routes/site';
 import type { PublicCourt } from '@/types';
 import { formatDuration } from '@/utils/timeSlots';
@@ -20,7 +20,9 @@ const selectedBookingDate = ref<string | null>(null);
 const selectedBookingSlot = ref<string | null>(null);
 
 const scheduleVenue = computed<CatalogVenue | null>(() => {
-    if (!props.court.venue) return null;
+    if (!props.court.venue) {
+        return null;
+    }
 
     return {
         ...props.court.venue,
@@ -55,6 +57,7 @@ const allImages = computed(() => {
             '/images/cta_pickleball.png',
         ];
     }
+
     return list;
 });
 
@@ -99,6 +102,7 @@ function nextImage() {
     if (allImages.value.length <= 1) {
         return;
     }
+
     lightboxIndex.value = (lightboxIndex.value + 1) % allImages.value.length;
 }
 
@@ -106,6 +110,7 @@ function prevImage() {
     if (allImages.value.length <= 1) {
         return;
     }
+
     lightboxIndex.value =
         (lightboxIndex.value - 1 + allImages.value.length) %
         allImages.value.length;
@@ -116,6 +121,7 @@ function handleKeyDown(e: KeyboardEvent) {
     if (!isLightboxOpen.value) {
         return;
     }
+
     if (e.key === 'ArrowRight') {
         nextImage();
     } else if (e.key === 'ArrowLeft') {

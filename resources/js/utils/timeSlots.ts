@@ -28,19 +28,30 @@ export const DEFAULT_TIME_SLOTS: string[] = [
  */
 export function timeToMinutes(slot: string): number {
     const match = slot.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (!match) return 9999;
+
+    if (!match) {
+        return 9999;
+    }
+
     let h = parseInt(match[1], 10);
     const m = parseInt(match[2], 10);
     const period = match[3].toUpperCase();
 
-    if (period === 'PM' && h !== 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
+    if (period === 'PM' && h !== 12) {
+        h += 12;
+    }
+
+    if (period === 'AM' && h === 12) {
+        h = 0;
+    }
 
     let totalMinutes = h * 60 + m;
+
     // Slots between 12:00 AM and 04:59 AM belong to late night shift after 11:00 PM
     if (h < 5) {
         totalMinutes += 24 * 60;
     }
+
     return totalMinutes;
 }
 
@@ -50,9 +61,14 @@ export function timeToMinutes(slot: string): number {
 export function formatTimeSlot(hours: number, minutes: number = 0): string {
     const period = hours >= 12 && hours < 24 ? 'PM' : 'AM';
     let h12 = hours % 12;
-    if (h12 === 0) h12 = 12;
+
+    if (h12 === 0) {
+        h12 = 12;
+    }
+
     const hh = String(h12).padStart(2, '0');
     const mm = String(minutes).padStart(2, '0');
+
     return `${hh}:${mm} ${period}`;
 }
 
@@ -64,6 +80,7 @@ export function formatDuration(minutes: number | null | undefined): string {
 
     if (duration > 0 && duration % 60 === 0) {
         const hours = duration / 60;
+
         return `${hours} ${hours === 1 ? 'hr' : 'hrs'}`;
     }
 
@@ -75,6 +92,7 @@ export function formatDuration(minutes: number | null | undefined): string {
  */
 export function sortTimeSlots(slots: string[]): string[] {
     const unique = Array.from(new Set(slots));
+
     return unique.sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
 }
 
@@ -86,6 +104,7 @@ export function getMergedTimeSlots(
     customSlotsFromPrices?: Record<string, any> | string[] | null,
 ): string[] {
     let extra: string[] = [];
+
     if (Array.isArray(customSlotsFromPrices)) {
         extra = customSlotsFromPrices;
     } else if (
@@ -94,7 +113,9 @@ export function getMergedTimeSlots(
     ) {
         extra = Object.keys(customSlotsFromPrices);
     }
+
     const combined = [...DEFAULT_TIME_SLOTS, ...extra];
+
     return sortTimeSlots(combined);
 }
 
@@ -119,6 +140,7 @@ export function formatSlotRange(
     durationMinutes: number = 60,
 ): string {
     const startMinutes = timeToMinutes(slot);
+
     if (startMinutes === 9999) {
         return slot;
     }
@@ -146,47 +168,80 @@ export function formatSlotRange(
  */
 export function getSlotStartMinutes(slot: string): number {
     const trimmed = (slot || '').trim();
-    if (!trimmed) return 0;
+
+    if (!trimmed) {
+        return 0;
+    }
 
     // Standard "HH:MM AM/PM"
     const standardMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
     if (standardMatch) {
         let h = parseInt(standardMatch[1], 10);
         const m = parseInt(standardMatch[2], 10);
         const period = standardMatch[3].toUpperCase();
-        if (period === 'PM' && h !== 12) h += 12;
-        if (period === 'AM' && h === 12) h = 0;
+
+        if (period === 'PM' && h !== 12) {
+            h += 12;
+        }
+
+        if (period === 'AM' && h === 12) {
+            h = 0;
+        }
+
         let total = h * 60 + m;
+
         // Slots between 12:00 AM and 04:59 AM belong to late night shift after 11:00 PM
-        if (h < 5) total += 24 * 60;
+        if (h < 5) {
+            total += 24 * 60;
+        }
+
         return total;
     }
 
     // Range like "07:00-07:59 AM" or "07:00 AM - 08:00 AM"
     const rangeMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/i);
+
     if (rangeMatch) {
         let h = parseInt(rangeMatch[1], 10);
         const m = parseInt(rangeMatch[2], 10);
         let period = rangeMatch[3]?.toUpperCase();
+
         if (!period) {
             const endPeriod = trimmed.match(/\b(AM|PM)\b/i);
             period = endPeriod ? endPeriod[1].toUpperCase() : 'AM';
         }
-        if (period === 'PM' && h !== 12) h += 12;
-        if (period === 'AM' && h === 12) h = 0;
+
+        if (period === 'PM' && h !== 12) {
+            h += 12;
+        }
+
+        if (period === 'AM' && h === 12) {
+            h = 0;
+        }
+
         let total = h * 60 + m;
+
         // Slots between 12:00 AM and 04:59 AM belong to late night shift after 11:00 PM
-        if (h < 5) total += 24 * 60;
+        if (h < 5) {
+            total += 24 * 60;
+        }
+
         return total;
     }
 
     // 24h format like "14:00"
     const h24Match = trimmed.match(/^(\d{1,2}):(\d{2})/);
+
     if (h24Match) {
-        let h = parseInt(h24Match[1], 10);
+        const h = parseInt(h24Match[1], 10);
         const m = parseInt(h24Match[2], 10);
         let total = h * 60 + m;
-        if (h < 5) total += 24 * 60;
+
+        if (h < 5) {
+            total += 24 * 60;
+        }
+
         return total;
     }
 
@@ -200,8 +255,14 @@ export function getSlotStartMinutes(slot: string): number {
  * @param slot Slot string (e.g. "03:00 PM", "03:00-03:59 PM", "02:00-02:59 AM")
  * @param now Optional Date reference (defaults to new Date())
  */
-export function isSlotPassed(dateStr: string, slot: string, now: Date = new Date()): boolean {
-    if (!dateStr || !slot) return false;
+export function isSlotPassed(
+    dateStr: string,
+    slot: string,
+    now: Date = new Date(),
+): boolean {
+    if (!dateStr || !slot) {
+        return false;
+    }
 
     // Operating day starts at 05:00 AM; hours from 00:00 to 04:59 belong to the previous calendar date's operating day
     const opDate = new Date(now);
@@ -235,4 +296,3 @@ export function isSlotPassed(dateStr: string, slot: string, now: Date = new Date
 
     return slotStart <= currentOperatingMinutes;
 }
-

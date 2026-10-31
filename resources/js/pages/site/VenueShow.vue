@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
 import {
     MapPin,
     Phone,
@@ -14,13 +13,14 @@ import {
     CheckCircle,
     ZoomIn,
 } from '@lucide/vue';
+import { computed, ref } from 'vue';
 import BookingModal from '@/components/site/BookingModal.vue';
-import VenueImageViewer from '@/components/site/VenueImageViewer.vue';
-import VenueAvailabilitySchedule from '@/components/site/VenueAvailabilitySchedule.vue';
 import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
+import VenueAvailabilitySchedule from '@/components/site/VenueAvailabilitySchedule.vue';
+import VenueImageViewer from '@/components/site/VenueImageViewer.vue';
+import { show as showCourt } from '@/routes/site/courts';
 import type { PublicCourt } from '@/types';
 import { formatDuration } from '@/utils/timeSlots';
-import { show as showCourt } from '@/routes/site/courts';
 
 const props = defineProps<{
     venue: CatalogVenue & { images?: string[] };
@@ -45,9 +45,11 @@ function openBookingForCourt(
     slot?: string,
 ) {
     selectedCourtForBooking.value = court || null;
+
     if (date) {
         selectedBookingDate.value = date;
     }
+
     selectedBookingSlot.value = slot || null;
     isBookingModalOpen.value = true;
 }

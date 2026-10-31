@@ -2,15 +2,19 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/InputError.vue';
 
 const props = defineProps<{
     siteName: string;
     logoUrl: string;
-    contact: { email: string | null; phone: string | null; address: string | null };
+    contact: {
+        email: string | null;
+        phone: string | null;
+        address: string | null;
+    };
 }>();
 
 defineOptions({
@@ -32,6 +36,7 @@ const brandingForm = useForm({
 function onLogoChange(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0] ?? null;
     brandingForm.logo = file;
+
     if (file) {
         logoPreview.value = URL.createObjectURL(file);
     }
@@ -55,13 +60,19 @@ function saveBranding(): void {
         <div class="mt-6 max-w-xl rounded-xl border border-border p-5">
             <h3 class="text-base font-semibold">Branding</h3>
             <p class="mt-1 text-sm text-muted-foreground">
-                Your site name and logo appear across the site, dashboard, favicon, and emails.
+                Your site name and logo appear across the site, dashboard,
+                favicon, and emails.
             </p>
 
             <div class="mt-4 space-y-4">
                 <div class="space-y-2">
                     <Label for="site-name">Site Name</Label>
-                    <Input id="site-name" v-model="brandingForm.name" type="text" maxlength="60" />
+                    <Input
+                        id="site-name"
+                        v-model="brandingForm.name"
+                        type="text"
+                        maxlength="60"
+                    />
                     <InputError :message="brandingForm.errors.name" />
                 </div>
 
@@ -73,36 +84,65 @@ function saveBranding(): void {
                             alt="Current logo"
                             class="size-16 rounded-lg border border-border object-cover"
                         />
-                        <input type="file" accept="image/*" class="text-sm" @change="onLogoChange" />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            class="text-sm"
+                            @change="onLogoChange"
+                        />
                     </div>
-                    <p class="text-xs text-muted-foreground">PNG, JPG, WEBP or SVG up to 2MB.</p>
+                    <p class="text-xs text-muted-foreground">
+                        PNG, JPG, WEBP or SVG up to 2MB.
+                    </p>
                     <InputError :message="brandingForm.errors.logo" />
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <Label for="contact-email">Contact Email</Label>
-                        <Input id="contact-email" v-model="brandingForm.contact_email" type="email" />
-                        <InputError :message="brandingForm.errors.contact_email" />
+                        <Input
+                            id="contact-email"
+                            v-model="brandingForm.contact_email"
+                            type="email"
+                        />
+                        <InputError
+                            :message="brandingForm.errors.contact_email"
+                        />
                     </div>
                     <div class="space-y-2">
                         <Label for="contact-phone">Contact Phone</Label>
-                        <Input id="contact-phone" v-model="brandingForm.contact_phone" type="text" />
-                        <InputError :message="brandingForm.errors.contact_phone" />
+                        <Input
+                            id="contact-phone"
+                            v-model="brandingForm.contact_phone"
+                            type="text"
+                        />
+                        <InputError
+                            :message="brandingForm.errors.contact_phone"
+                        />
                     </div>
                 </div>
 
                 <div class="space-y-2">
                     <Label for="contact-address">Address</Label>
-                    <Input id="contact-address" v-model="brandingForm.contact_address" type="text" />
-                    <InputError :message="brandingForm.errors.contact_address" />
+                    <Input
+                        id="contact-address"
+                        v-model="brandingForm.contact_address"
+                        type="text"
+                    />
+                    <InputError
+                        :message="brandingForm.errors.contact_address"
+                    />
                 </div>
 
-                <Button :disabled="brandingForm.processing" @click="saveBranding">
-                    {{ brandingForm.processing ? 'Saving...' : 'Save branding' }}
+                <Button
+                    :disabled="brandingForm.processing"
+                    @click="saveBranding"
+                >
+                    {{
+                        brandingForm.processing ? 'Saving...' : 'Save branding'
+                    }}
                 </Button>
             </div>
         </div>
-
     </div>
 </template>

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
     Calendar,
     Clock,
     CheckCircle,
-    XCircle,
     Dumbbell,
     CalendarCheck,
 } from '@lucide/vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
+import { useCourtAvailability } from '@/composables/useCourtAvailability';
 import type { PublicCourt } from '@/types';
 import {
     formatDuration,
@@ -16,7 +16,6 @@ import {
     getMergedTimeSlots,
     isSlotPassed,
 } from '@/utils/timeSlots';
-import { useCourtAvailability } from '@/composables/useCourtAvailability';
 
 const props = defineProps<{
     venue: CatalogVenue;
@@ -32,21 +31,8 @@ function toDateKey(d: Date): string {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-}
 
-function parseLocalDate(dateStr: string): Date {
-    if (!dateStr) return new Date();
-    const parts = dateStr.split('-').map(Number);
-    if (
-        parts.length === 3 &&
-        !isNaN(parts[0]) &&
-        !isNaN(parts[1]) &&
-        !isNaN(parts[2])
-    ) {
-        return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
-    return new Date(dateStr);
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 const currentNow = ref(new Date());
@@ -68,35 +54,29 @@ onUnmounted(() => {
 const todayDateKey = computed(() => toDateKey(currentNow.value));
 const isEveningOrNight = computed(() => {
     const hours = currentNow.value.getHours();
+
     return hours >= 17; // 5:00 PM (17:00) onwards is Evening / Night (PM) period
 });
 const selectedDate = ref<string>(todayDateKey.value);
 const selectedCourtId = ref<number | null>(null);
 
-const formattedSelectedDate = computed(() => {
-    if (!selectedDate.value) return '';
-    const d = parseLocalDate(selectedDate.value);
-    return d.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
-});
-
 function getSlotPriceForCourt(court: PublicCourt, slot: string): number {
     const customPrices = court.slot_prices;
+
     if (
         customPrices &&
         customPrices[slot] !== undefined &&
         customPrices[slot] !== null
     ) {
         const val = parseFloat(String(customPrices[slot]));
+
         if (!isNaN(val) && val > 0) {
             return val;
         }
     }
+
     const base = parseFloat(court.base_price || '0');
+
     return isNaN(base) ? 0 : base;
 }
 
@@ -132,47 +112,72 @@ const upcomingDays = computed(() => {
             isToday: dateStr === todayDateKey.value,
         });
     }
+
     return list;
 });
 
 // Time slots (Default open hours + custom admin created slots)
 const activeTimeSlots = computed(() => {
-    let customPricesList: Record<string, any>[] = [];
+    const customPricesList: Record<string, any>[] = [];
+
     if (props.venue?.courts) {
         props.venue.courts.forEach((c) => {
-            if (c.slot_prices) customPricesList.push(c.slot_prices);
+            if (c.slot_prices) {
+                customPricesList.push(c.slot_prices);
+            }
         });
     }
+
     const combined = customPricesList.reduce(
         (acc, prices) => ({ ...acc, ...prices }),
         {},
     );
+
     return getMergedTimeSlots(combined);
 });
 
 function parseSlotHour(slot: string): number {
     const [time, period] = slot.split(' ');
     let hour = parseInt(time.split(':')[0], 10);
-    if (period === 'PM' && hour !== 12) hour += 12;
-    if (period === 'AM' && hour === 12) hour = 0;
+
+    if (period === 'PM' && hour !== 12) {
+        hour += 12;
+    }
+
+    if (period === 'AM' && hour === 12) {
+        hour = 0;
+    }
+
     return hour;
 }
 
 function slotPeriodLabel(slot: string): string {
     const h = parseSlotHour(slot);
-    if (h >= 5 && h < 12) return 'Morning';
-    if (h >= 12 && h < 17) return 'Afternoon';
-    if (h >= 17 && h < 21) return 'Evening';
+
+    if (h >= 5 && h < 12) {
+        return 'Morning';
+    }
+
+    if (h >= 12 && h < 17) {
+        return 'Afternoon';
+    }
+
+    if (h >= 17 && h < 21) {
+        return 'Evening';
+    }
+
     return 'Night';
 }
 
 const groupedTimeSlots = computed(() => {
     const order = ['Morning', 'Afternoon', 'Evening', 'Night'];
     const groups: Record<string, string[]> = {};
+
     for (const slot of activeTimeSlots.value) {
         const period = slotPeriodLabel(slot);
         (groups[period] ??= []).push(slot);
     }
+
     return order
         .filter((period) => groups[period]?.length)
         .map((period) => ({ period, slots: groups[period] }));
@@ -180,7 +185,10 @@ const groupedTimeSlots = computed(() => {
 
 // Fetch realtime server availability
 async function fetchAvailability() {
-    if (!selectedDate.value) return;
+    if (!selectedDate.value) {
+        return;
+    }
+
     await loadAvailability({ date: selectedDate.value });
 }
 
@@ -198,10 +206,14 @@ function getSlotCustomer(courtId: number, slot: string): string | null {
 }
 
 const courtsToDisplay = computed<PublicCourt[]>(() => {
-    if (!props.venue.courts || props.venue.courts.length === 0) return [];
+    if (!props.venue.courts || props.venue.courts.length === 0) {
+        return [];
+    }
+
     if (selectedCourtId.value) {
         return props.venue.courts.filter((c) => c.id === selectedCourtId.value);
     }
+
     return props.venue.courts;
 });
 
@@ -268,9 +280,7 @@ onMounted(() => {
                         <span
                             class="size-3 rounded-full bg-neutral-400 dark:bg-neutral-600"
                         />
-                        <span class="text-content-muted"
-                            >Passed</span
-                        >
+                        <span class="text-content-muted">Passed</span>
                     </div>
                 </div>
             </div>
@@ -321,7 +331,13 @@ onMounted(() => {
                         <span
                             class="text-[10px] font-extrabold tracking-wider uppercase opacity-80"
                         >
-                            {{ d.isToday ? (isEveningOrNight ? 'Tonight' : 'Today') : d.dayName }}
+                            {{
+                                d.isToday
+                                    ? isEveningOrNight
+                                        ? 'Tonight'
+                                        : 'Today'
+                                    : d.dayName
+                            }}
                         </span>
                         <span class="my-0.5 text-lg font-black tracking-tight">
                             {{ d.dayNum }}
@@ -436,7 +452,11 @@ onMounted(() => {
                                         activeTimeSlots.filter(
                                             (s) =>
                                                 !isSlotBooked(court.id, s) &&
-                                                !isSlotPassed(selectedDate, s, currentNow),
+                                                !isSlotPassed(
+                                                    selectedDate,
+                                                    s,
+                                                    currentNow,
+                                                ),
                                         ).length
                                     }}
                                     Slots
@@ -490,13 +510,21 @@ onMounted(() => {
                                     :class="[
                                         isSlotBooked(court.id, slot)
                                             ? 'cursor-not-allowed border-line/40 bg-surface-inverse/85 text-content-muted'
-                                            : isSlotPassed(selectedDate, slot, currentNow)
+                                            : isSlotPassed(
+                                                    selectedDate,
+                                                    slot,
+                                                    currentNow,
+                                                )
                                               ? 'cursor-not-allowed border-line/30 bg-surface-elevated/40 text-content-muted/60 opacity-50'
                                               : 'group/slot cursor-pointer border-emerald-500/40 bg-surface-elevated text-content hover:scale-102 hover:border-emerald-500 hover:shadow-md',
                                     ]"
                                     @click="
                                         !isSlotBooked(court.id, slot) &&
-                                        !isSlotPassed(selectedDate, slot, currentNow) &&
+                                        !isSlotPassed(
+                                            selectedDate,
+                                            slot,
+                                            currentNow,
+                                        ) &&
                                         emit(
                                             'book-court',
                                             court,
@@ -510,7 +538,11 @@ onMounted(() => {
                                         :class="{
                                             'text-slate-400 line-through':
                                                 isSlotBooked(court.id, slot) ||
-                                                isSlotPassed(selectedDate, slot, currentNow),
+                                                isSlotPassed(
+                                                    selectedDate,
+                                                    slot,
+                                                    currentNow,
+                                                ),
                                         }"
                                     >
                                         {{
@@ -525,7 +557,11 @@ onMounted(() => {
                                         class="mt-0.5 text-[10px] font-extrabold"
                                         :class="
                                             isSlotBooked(court.id, slot) ||
-                                            isSlotPassed(selectedDate, slot, currentNow)
+                                            isSlotPassed(
+                                                selectedDate,
+                                                slot,
+                                                currentNow,
+                                            )
                                                 ? 'text-slate-400 opacity-70'
                                                 : 'text-brand'
                                         "
@@ -546,7 +582,11 @@ onMounted(() => {
                                     </span>
                                     <span
                                         v-else-if="
-                                            isSlotPassed(selectedDate, slot, currentNow)
+                                            isSlotPassed(
+                                                selectedDate,
+                                                slot,
+                                                currentNow,
+                                            )
                                         "
                                         class="mt-1 inline-flex items-center gap-1 rounded-md border border-line/40 bg-surface-elevated/80 px-2 py-0.5 text-[9px] font-bold text-content-muted/70"
                                     >
@@ -569,7 +609,9 @@ onMounted(() => {
                                         class="mt-2 w-full max-w-full truncate border-t border-white/10 pt-1.5 text-center text-[10px] leading-tight"
                                         :title="`Customer: ${getSlotCustomer(court.id, slot)}`"
                                     >
-                                        <span class="text-slate-400">Customer: </span>
+                                        <span class="text-slate-400"
+                                            >Customer:
+                                        </span>
                                         <strong class="font-bold text-white">{{
                                             getSlotCustomer(court.id, slot)
                                         }}</strong>

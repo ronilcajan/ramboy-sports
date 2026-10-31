@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { Plus, Pencil, X, Dumbbell, Users, Image as ImageIcon } from '@lucide/vue';
+import {
+    Plus,
+    Pencil,
+    X,
+    Dumbbell,
+    Users,
+    Image as ImageIcon,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
 import CourtImageManagerModal from '@/components/admin/CourtImageManagerModal.vue';
 import InputError from '@/components/InputError.vue';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CourtImage {
     id: number;
@@ -60,8 +67,10 @@ defineOptions({
 });
 
 const statusPill: Record<Court['status'], string> = {
-    available: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-    maintenance: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+    available:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+    maintenance:
+        'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
     closed: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
 };
 
@@ -73,7 +82,9 @@ const selectedCourtIdForImages = ref<number | null>(null);
 
 // Resolve from the live props so the gallery reflects each upload/delete round-trip.
 const selectedCourtForImages = computed<Court | null>(
-    () => props.courts.find((c) => c.id === selectedCourtIdForImages.value) ?? null,
+    () =>
+        props.courts.find((c) => c.id === selectedCourtIdForImages.value) ??
+        null,
 );
 
 function openImageModal(court: Court) {
@@ -113,29 +124,45 @@ const editPreview = ref<string | null>(null);
 
 function onCreateImageChange(e: Event) {
     const target = e.target as HTMLInputElement;
+
     if (target.files && target.files[0]) {
         const file = target.files[0];
+
         if (file.size > 5 * 1024 * 1024) {
             alert('File size exceeds 5MB limit.');
+
             return;
         }
+
         createForm.image = file;
-        if (createPreview.value) URL.revokeObjectURL(createPreview.value);
+
+        if (createPreview.value) {
+            URL.revokeObjectURL(createPreview.value);
+        }
+
         createPreview.value = URL.createObjectURL(file);
     }
 }
 
 function onEditImageChange(e: Event) {
     const target = e.target as HTMLInputElement;
+
     if (target.files && target.files[0]) {
         const file = target.files[0];
+
         if (file.size > 5 * 1024 * 1024) {
             alert('File size exceeds 5MB limit.');
+
             return;
         }
+
         editForm.image = file;
         editForm.delete_image = false;
-        if (editPreview.value) URL.revokeObjectURL(editPreview.value);
+
+        if (editPreview.value) {
+            URL.revokeObjectURL(editPreview.value);
+        }
+
         editPreview.value = URL.createObjectURL(file);
     }
 }
@@ -143,6 +170,7 @@ function onEditImageChange(e: Event) {
 function removeEditImage() {
     editForm.image = null;
     editForm.delete_image = true;
+
     if (editPreview.value) {
         URL.revokeObjectURL(editPreview.value);
         editPreview.value = null;
@@ -152,10 +180,12 @@ function removeEditImage() {
 function openCreateModal() {
     createForm.reset();
     createForm.clearErrors();
+
     if (createPreview.value) {
         URL.revokeObjectURL(createPreview.value);
         createPreview.value = null;
     }
+
     showCreateModal.value = true;
 }
 
@@ -164,6 +194,7 @@ function submitCreate() {
         onSuccess: () => {
             showCreateModal.value = false;
             createForm.reset();
+
             if (createPreview.value) {
                 URL.revokeObjectURL(createPreview.value);
                 createPreview.value = null;
@@ -186,45 +217,59 @@ function openEditModal(court: Court) {
     editForm.is_active = court.is_active ?? true;
     editForm.image = null;
     editForm.delete_image = false;
+
     if (editPreview.value) {
         URL.revokeObjectURL(editPreview.value);
         editPreview.value = null;
     }
+
     editForm.clearErrors();
     showEditModal.value = true;
 }
 
 function submitEdit() {
-    if (!editingCourt.value) return;
-    editForm.transform((data) => ({ ...data, _method: 'put' })).post(`/staff/courts/${editingCourt.value.id}`, {
-        onSuccess: () => {
-            showEditModal.value = false;
-            editingCourt.value = null;
-            if (editPreview.value) {
-                URL.revokeObjectURL(editPreview.value);
-                editPreview.value = null;
-            }
-        },
-        preserveScroll: true,
-    });
+    if (!editingCourt.value) {
+        return;
+    }
+
+    editForm
+        .transform((data) => ({ ...data, _method: 'put' }))
+        .post(`/staff/courts/${editingCourt.value.id}`, {
+            onSuccess: () => {
+                showEditModal.value = false;
+                editingCourt.value = null;
+
+                if (editPreview.value) {
+                    URL.revokeObjectURL(editPreview.value);
+                    editPreview.value = null;
+                }
+            },
+            preserveScroll: true,
+        });
 }
 </script>
 
 <template>
     <Head title="Assigned Courts - Staff" />
 
-    <div class="p-6 space-y-6 w-full">
+    <div class="w-full space-y-6 p-6">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div
+            class="flex flex-col justify-between gap-4 md:flex-row md:items-center"
+        >
             <div>
-                <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Assigned Courts</h1>
-                <p class="text-xs text-neutral-500">Manage courts, pricing, and operational configurations.</p>
+                <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                    Assigned Courts
+                </h1>
+                <p class="text-xs text-neutral-500">
+                    Manage courts, pricing, and operational configurations.
+                </p>
             </div>
             <button
                 @click="openCreateModal"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow transition-colors hover:bg-emerald-700"
             >
-                <Plus class="w-4 h-4" /> Add Court
+                <Plus class="h-4 w-4" /> Add Court
             </button>
         </div>
 
@@ -236,20 +281,28 @@ function submitEdit() {
             <div
                 v-for="court in courts"
                 :key="court.id"
-                class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm transition-shadow hover:shadow-md"
+                class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
             >
-                <div class="relative aspect-video overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                <div
+                    class="relative aspect-video overflow-hidden bg-neutral-100 dark:bg-neutral-800"
+                >
                     <img
                         v-if="court.primary_image?.url"
                         :src="court.primary_image.url"
                         :alt="court.name"
                         class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-neutral-300 dark:text-neutral-600">
+                    <div
+                        v-else
+                        class="flex h-full w-full items-center justify-center text-neutral-300 dark:text-neutral-600"
+                    >
                         <Dumbbell class="h-10 w-10" />
                     </div>
                     <span
-                        :class="['absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize shadow-sm', statusPill[court.status]]"
+                        :class="[
+                            'absolute top-2 right-2 rounded-full px-2 py-0.5 text-[10px] font-bold capitalize shadow-sm',
+                            statusPill[court.status],
+                        ]"
                     >
                         {{ court.status }}
                     </span>
@@ -258,28 +311,46 @@ function submitEdit() {
                 <div class="flex flex-1 flex-col gap-2 p-4">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <h3 class="truncate font-semibold leading-tight text-neutral-900 dark:text-white">{{ court.name }}</h3>
-                            <p class="truncate text-xs text-neutral-500">{{ court.venue?.name || 'Unassigned' }}</p>
+                            <h3
+                                class="truncate leading-tight font-semibold text-neutral-900 dark:text-white"
+                            >
+                                {{ court.name }}
+                            </h3>
+                            <p class="truncate text-xs text-neutral-500">
+                                {{ court.venue?.name || 'Unassigned' }}
+                            </p>
                         </div>
-                        <span class="shrink-0 text-sm font-bold text-emerald-600 dark:text-emerald-400">₱{{ court.base_price }}</span>
+                        <span
+                            class="shrink-0 text-sm font-bold text-emerald-600 dark:text-emerald-400"
+                            >₱{{ court.base_price }}</span
+                        >
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
-                        <span class="rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 capitalize">{{ court.sport_type.replace('-', ' ') }}</span>
-                        <span class="inline-flex items-center gap-1"><Users class="h-3 w-3" /> {{ court.staff_count }} staff</span>
+                    <div
+                        class="flex flex-wrap items-center gap-2 text-[11px] text-neutral-500"
+                    >
+                        <span
+                            class="rounded-full bg-neutral-100 px-2 py-0.5 capitalize dark:bg-neutral-800"
+                            >{{ court.sport_type.replace('-', ' ') }}</span
+                        >
+                        <span class="inline-flex items-center gap-1"
+                            ><Users class="h-3 w-3" />
+                            {{ court.staff_count }} staff</span
+                        >
                     </div>
 
                     <div class="mt-auto flex items-center gap-2 pt-3">
                         <button
                             @click="openImageModal(court)"
-                            class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
+                            class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:text-emerald-400"
                             title="Upload Court Photos"
                         >
-                            <ImageIcon class="h-3.5 w-3.5 text-emerald-600" /> Photos
+                            <ImageIcon class="h-3.5 w-3.5 text-emerald-600" />
+                            Photos
                         </button>
                         <button
                             @click="openEditModal(court)"
-                            class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
+                            class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:border-emerald-500 hover:text-emerald-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:text-emerald-400"
                         >
                             <Pencil class="h-3.5 w-3.5" /> Edit
                         </button>
@@ -290,7 +361,7 @@ function submitEdit() {
 
         <div
             v-else
-            class="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 py-16 text-center text-sm text-neutral-500"
+            class="rounded-2xl border border-dashed border-neutral-300 py-16 text-center text-sm text-neutral-500 dark:border-neutral-700"
         >
             No courts assigned yet. Add your court to get started.
         </div>
@@ -300,16 +371,28 @@ function submitEdit() {
     <Teleport to="body">
         <div
             v-if="showCreateModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto"
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
             @click.self="showCreateModal = false"
         >
-            <div class="w-full max-w-lg rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-xl space-y-5 my-8">
+            <div
+                class="my-8 w-full max-w-lg space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">Add New Court</h2>
-                        <p class="text-xs text-neutral-500">Create a new court and configure pricing &amp; rules.</p>
+                        <h2
+                            class="text-lg font-semibold text-neutral-900 dark:text-white"
+                        >
+                            Add New Court
+                        </h2>
+                        <p class="text-xs text-neutral-500">
+                            Create a new court and configure pricing &amp;
+                            rules.
+                        </p>
                     </div>
-                    <button @click="showCreateModal = false" class="text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
+                    <button
+                        @click="showCreateModal = false"
+                        class="text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                    >
                         <X class="h-5 w-5" />
                     </button>
                 </div>
@@ -317,19 +400,31 @@ function submitEdit() {
                 <form @submit.prevent="submitCreate" class="space-y-4">
                     <div class="space-y-2">
                         <Label for="create-court-name">Court Name *</Label>
-                        <Input id="create-court-name" v-model="createForm.name" type="text" placeholder="e.g. Center Court" required />
+                        <Input
+                            id="create-court-name"
+                            v-model="createForm.name"
+                            type="text"
+                            placeholder="e.g. Center Court"
+                            required
+                        />
                         <InputError :message="createForm.errors.name" />
                     </div>
 
                     <div v-if="venues && venues.length > 0" class="space-y-2">
-                        <Label for="create-court-venue">Assigned Location</Label>
+                        <Label for="create-court-venue"
+                            >Assigned Location</Label
+                        >
                         <select
                             id="create-court-venue"
                             v-model="createForm.venue_id"
-                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                         >
                             <option value="">No Location Assigned</option>
-                            <option v-for="v in venues" :key="v.id" :value="v.id">
+                            <option
+                                v-for="v in venues"
+                                :key="v.id"
+                                :value="v.id"
+                            >
                                 {{ v.name }}
                             </option>
                         </select>
@@ -343,13 +438,24 @@ function submitEdit() {
                                 id="create-court-sport"
                                 v-model="createForm.sport_type"
                                 required
-                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm capitalize focus:ring-2 focus:ring-ring focus:outline-none"
                             >
-                                <option v-for="st in (sportTypes || [{ value: 'pickleball', label: 'Pickleball' }])" :key="st.value" :value="st.value">
+                                <option
+                                    v-for="st in sportTypes || [
+                                        {
+                                            value: 'pickleball',
+                                            label: 'Pickleball',
+                                        },
+                                    ]"
+                                    :key="st.value"
+                                    :value="st.value"
+                                >
                                     {{ st.label }}
                                 </option>
                             </select>
-                            <InputError :message="createForm.errors.sport_type" />
+                            <InputError
+                                :message="createForm.errors.sport_type"
+                            />
                         </div>
 
                         <div class="space-y-2">
@@ -358,9 +464,23 @@ function submitEdit() {
                                 id="create-court-status"
                                 v-model="createForm.status"
                                 required
-                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm capitalize focus:ring-2 focus:ring-ring focus:outline-none"
                             >
-                                <option v-for="st in (statuses || [{ value: 'available', label: 'Available' }, { value: 'maintenance', label: 'Maintenance' }, { value: 'closed', label: 'Closed' }])" :key="st.value" :value="st.value">
+                                <option
+                                    v-for="st in statuses || [
+                                        {
+                                            value: 'available',
+                                            label: 'Available',
+                                        },
+                                        {
+                                            value: 'maintenance',
+                                            label: 'Maintenance',
+                                        },
+                                        { value: 'closed', label: 'Closed' },
+                                    ]"
+                                    :key="st.value"
+                                    :value="st.value"
+                                >
                                     {{ st.label }}
                                 </option>
                             </select>
@@ -370,32 +490,71 @@ function submitEdit() {
 
                     <div class="grid grid-cols-3 gap-3">
                         <div class="space-y-2">
-                            <Label for="create-court-price">Hourly Rate ($) *</Label>
-                            <Input id="create-court-price" v-model="createForm.base_price" type="number" step="0.01" min="0" required />
-                            <InputError :message="createForm.errors.base_price" />
+                            <Label for="create-court-price"
+                                >Hourly Rate ($) *</Label
+                            >
+                            <Input
+                                id="create-court-price"
+                                v-model="createForm.base_price"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                required
+                            />
+                            <InputError
+                                :message="createForm.errors.base_price"
+                            />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="create-court-duration">Slot Mins *</Label>
-                            <Input id="create-court-duration" v-model.number="createForm.slot_duration_minutes" type="number" min="15" step="15" required />
-                            <InputError :message="createForm.errors.slot_duration_minutes" />
+                            <Label for="create-court-duration"
+                                >Slot Mins *</Label
+                            >
+                            <Input
+                                id="create-court-duration"
+                                v-model.number="
+                                    createForm.slot_duration_minutes
+                                "
+                                type="number"
+                                min="15"
+                                step="15"
+                                required
+                            />
+                            <InputError
+                                :message="
+                                    createForm.errors.slot_duration_minutes
+                                "
+                            />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="create-court-buffer">Buffer Mins *</Label>
-                            <Input id="create-court-buffer" v-model.number="createForm.buffer_minutes" type="number" min="0" step="5" required />
-                            <InputError :message="createForm.errors.buffer_minutes" />
+                            <Label for="create-court-buffer"
+                                >Buffer Mins *</Label
+                            >
+                            <Input
+                                id="create-court-buffer"
+                                v-model.number="createForm.buffer_minutes"
+                                type="number"
+                                min="0"
+                                step="5"
+                                required
+                            />
+                            <InputError
+                                :message="createForm.errors.buffer_minutes"
+                            />
                         </div>
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="create-court-description">Description</Label>
+                        <Label for="create-court-description"
+                            >Description</Label
+                        >
                         <textarea
                             id="create-court-description"
                             v-model="createForm.description"
                             rows="2"
                             placeholder="Brief description of surface, lighting, or indoor/outdoor..."
-                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                         />
                         <InputError :message="createForm.errors.description" />
                     </div>
@@ -405,12 +564,24 @@ function submitEdit() {
                         <Label class="text-xs font-semibold">Court Photo</Label>
                         <div class="flex items-center gap-3">
                             <div v-if="createPreview" class="relative">
-                                <img :src="createPreview" alt="Preview" class="h-16 w-24 rounded-lg object-cover border border-input shadow-sm" />
+                                <img
+                                    :src="createPreview"
+                                    alt="Preview"
+                                    class="h-16 w-24 rounded-lg border border-input object-cover shadow-sm"
+                                />
                             </div>
-                            <div v-else class="h-16 w-24 rounded-lg border border-dashed border-input flex items-center justify-center text-xs text-muted-foreground">
+                            <div
+                                v-else
+                                class="flex h-16 w-24 items-center justify-center rounded-lg border border-dashed border-input text-xs text-muted-foreground"
+                            >
                                 No Photo
                             </div>
-                            <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp,image/avif" @change="onCreateImageChange" class="text-xs" />
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp,image/avif"
+                                @change="onCreateImageChange"
+                                class="text-xs"
+                            />
                         </div>
                         <InputError :message="createForm.errors.image" />
                     </div>
@@ -422,13 +593,24 @@ function submitEdit() {
                             type="checkbox"
                             class="rounded border-input text-primary focus:ring-primary"
                         />
-                        <Label for="create-court-active" class="cursor-pointer">Active for online booking</Label>
+                        <Label for="create-court-active" class="cursor-pointer"
+                            >Active for online booking</Label
+                        >
                     </div>
 
                     <div class="flex justify-end gap-3 pt-3">
-                        <Button variant="outline" type="button" @click="showCreateModal = false">Cancel</Button>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            @click="showCreateModal = false"
+                            >Cancel</Button
+                        >
                         <Button type="submit" :disabled="createForm.processing">
-                            {{ createForm.processing ? 'Creating...' : 'Create Court' }}
+                            {{
+                                createForm.processing
+                                    ? 'Creating...'
+                                    : 'Create Court'
+                            }}
                         </Button>
                     </div>
                 </form>
@@ -440,16 +622,27 @@ function submitEdit() {
     <Teleport to="body">
         <div
             v-if="showEditModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto"
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm"
             @click.self="showEditModal = false"
         >
-            <div class="w-full max-w-lg rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-xl space-y-5 my-8">
+            <div
+                class="my-8 w-full max-w-lg space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-800 dark:bg-neutral-900"
+            >
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">Edit Court</h2>
-                        <p class="text-xs text-neutral-500">Update court details, pricing, and status.</p>
+                        <h2
+                            class="text-lg font-semibold text-neutral-900 dark:text-white"
+                        >
+                            Edit Court
+                        </h2>
+                        <p class="text-xs text-neutral-500">
+                            Update court details, pricing, and status.
+                        </p>
                     </div>
-                    <button @click="showEditModal = false" class="text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
+                    <button
+                        @click="showEditModal = false"
+                        class="text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                    >
                         <X class="h-5 w-5" />
                     </button>
                 </div>
@@ -457,7 +650,12 @@ function submitEdit() {
                 <form @submit.prevent="submitEdit" class="space-y-4">
                     <div class="space-y-2">
                         <Label for="edit-court-name">Court Name *</Label>
-                        <Input id="edit-court-name" v-model="editForm.name" type="text" required />
+                        <Input
+                            id="edit-court-name"
+                            v-model="editForm.name"
+                            type="text"
+                            required
+                        />
                         <InputError :message="editForm.errors.name" />
                     </div>
 
@@ -466,10 +664,14 @@ function submitEdit() {
                         <select
                             id="edit-court-venue"
                             v-model="editForm.venue_id"
-                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                         >
                             <option value="">No Location Assigned</option>
-                            <option v-for="v in venues" :key="v.id" :value="v.id">
+                            <option
+                                v-for="v in venues"
+                                :key="v.id"
+                                :value="v.id"
+                            >
                                 {{ v.name }}
                             </option>
                         </select>
@@ -483,9 +685,18 @@ function submitEdit() {
                                 id="edit-court-sport"
                                 v-model="editForm.sport_type"
                                 required
-                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm capitalize focus:ring-2 focus:ring-ring focus:outline-none"
                             >
-                                <option v-for="st in (sportTypes || [{ value: 'pickleball', label: 'Pickleball' }])" :key="st.value" :value="st.value">
+                                <option
+                                    v-for="st in sportTypes || [
+                                        {
+                                            value: 'pickleball',
+                                            label: 'Pickleball',
+                                        },
+                                    ]"
+                                    :key="st.value"
+                                    :value="st.value"
+                                >
                                     {{ st.label }}
                                 </option>
                             </select>
@@ -498,9 +709,23 @@ function submitEdit() {
                                 id="edit-court-status"
                                 v-model="editForm.status"
                                 required
-                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring capitalize"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm capitalize focus:ring-2 focus:ring-ring focus:outline-none"
                             >
-                                <option v-for="st in (statuses || [{ value: 'available', label: 'Available' }, { value: 'maintenance', label: 'Maintenance' }, { value: 'closed', label: 'Closed' }])" :key="st.value" :value="st.value">
+                                <option
+                                    v-for="st in statuses || [
+                                        {
+                                            value: 'available',
+                                            label: 'Available',
+                                        },
+                                        {
+                                            value: 'maintenance',
+                                            label: 'Maintenance',
+                                        },
+                                        { value: 'closed', label: 'Closed' },
+                                    ]"
+                                    :key="st.value"
+                                    :value="st.value"
+                                >
                                     {{ st.label }}
                                 </option>
                             </select>
@@ -510,21 +735,48 @@ function submitEdit() {
 
                     <div class="grid grid-cols-3 gap-3">
                         <div class="space-y-2">
-                            <Label for="edit-court-price">Hourly Rate ($) *</Label>
-                            <Input id="edit-court-price" v-model="editForm.base_price" type="number" step="0.01" min="0" required />
+                            <Label for="edit-court-price"
+                                >Hourly Rate ($) *</Label
+                            >
+                            <Input
+                                id="edit-court-price"
+                                v-model="editForm.base_price"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                required
+                            />
                             <InputError :message="editForm.errors.base_price" />
                         </div>
 
                         <div class="space-y-2">
                             <Label for="edit-court-duration">Slot Mins *</Label>
-                            <Input id="edit-court-duration" v-model.number="editForm.slot_duration_minutes" type="number" min="15" step="15" required />
-                            <InputError :message="editForm.errors.slot_duration_minutes" />
+                            <Input
+                                id="edit-court-duration"
+                                v-model.number="editForm.slot_duration_minutes"
+                                type="number"
+                                min="15"
+                                step="15"
+                                required
+                            />
+                            <InputError
+                                :message="editForm.errors.slot_duration_minutes"
+                            />
                         </div>
 
                         <div class="space-y-2">
                             <Label for="edit-court-buffer">Buffer Mins *</Label>
-                            <Input id="edit-court-buffer" v-model.number="editForm.buffer_minutes" type="number" min="0" step="5" required />
-                            <InputError :message="editForm.errors.buffer_minutes" />
+                            <Input
+                                id="edit-court-buffer"
+                                v-model.number="editForm.buffer_minutes"
+                                type="number"
+                                min="0"
+                                step="5"
+                                required
+                            />
+                            <InputError
+                                :message="editForm.errors.buffer_minutes"
+                            />
                         </div>
                     </div>
 
@@ -534,7 +786,7 @@ function submitEdit() {
                             id="edit-court-description"
                             v-model="editForm.description"
                             rows="2"
-                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                         />
                         <InputError :message="editForm.errors.description" />
                     </div>
@@ -544,20 +796,55 @@ function submitEdit() {
                         <Label class="text-xs font-semibold">Court Photo</Label>
                         <div class="flex items-center gap-3">
                             <div v-if="editPreview" class="relative">
-                                <img :src="editPreview" alt="Preview" class="h-16 w-24 rounded-lg object-cover border border-input shadow-sm" />
-                                <span class="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[8px] font-bold px-1 rounded-full">New</span>
+                                <img
+                                    :src="editPreview"
+                                    alt="Preview"
+                                    class="h-16 w-24 rounded-lg border border-input object-cover shadow-sm"
+                                />
+                                <span
+                                    class="absolute -top-1.5 -right-1.5 rounded-full bg-emerald-600 px-1 text-[8px] font-bold text-white"
+                                    >New</span
+                                >
                             </div>
-                            <div v-else-if="editingCourt?.primary_image?.url && !editForm.delete_image" class="relative">
-                                <img :src="editingCourt.primary_image.url" alt="Current Photo" class="h-16 w-24 rounded-lg object-cover border border-input shadow-sm" />
+                            <div
+                                v-else-if="
+                                    editingCourt?.primary_image?.url &&
+                                    !editForm.delete_image
+                                "
+                                class="relative"
+                            >
+                                <img
+                                    :src="editingCourt.primary_image.url"
+                                    alt="Current Photo"
+                                    class="h-16 w-24 rounded-lg border border-input object-cover shadow-sm"
+                                />
                             </div>
-                            <div v-else class="h-16 w-24 rounded-lg border border-dashed border-input flex items-center justify-center text-xs text-muted-foreground">
+                            <div
+                                v-else
+                                class="flex h-16 w-24 items-center justify-center rounded-lg border border-dashed border-input text-xs text-muted-foreground"
+                            >
                                 No Photo
                             </div>
 
                             <div class="space-y-1">
-                                <input type="file" accept="image/jpeg,image/png,image/jpg,image/webp,image/avif" @change="onEditImageChange" class="text-xs" />
-                                <div v-if="editingCourt?.primary_image?.url && !editForm.delete_image" class="pt-0.5">
-                                    <button type="button" @click="removeEditImage" class="text-[11px] font-semibold text-rose-600 hover:underline">
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/avif"
+                                    @change="onEditImageChange"
+                                    class="text-xs"
+                                />
+                                <div
+                                    v-if="
+                                        editingCourt?.primary_image?.url &&
+                                        !editForm.delete_image
+                                    "
+                                    class="pt-0.5"
+                                >
+                                    <button
+                                        type="button"
+                                        @click="removeEditImage"
+                                        class="text-[11px] font-semibold text-rose-600 hover:underline"
+                                    >
                                         Remove photo
                                     </button>
                                 </div>
@@ -573,13 +860,24 @@ function submitEdit() {
                             type="checkbox"
                             class="rounded border-input text-primary focus:ring-primary"
                         />
-                        <Label for="edit-court-active" class="cursor-pointer">Active for online booking</Label>
+                        <Label for="edit-court-active" class="cursor-pointer"
+                            >Active for online booking</Label
+                        >
                     </div>
 
                     <div class="flex justify-end gap-3 pt-3">
-                        <Button variant="outline" type="button" @click="showEditModal = false">Cancel</Button>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            @click="showEditModal = false"
+                            >Cancel</Button
+                        >
                         <Button type="submit" :disabled="editForm.processing">
-                            {{ editForm.processing ? 'Saving...' : 'Save Changes' }}
+                            {{
+                                editForm.processing
+                                    ? 'Saving...'
+                                    : 'Save Changes'
+                            }}
                         </Button>
                     </div>
                 </form>

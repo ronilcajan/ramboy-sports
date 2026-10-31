@@ -35,27 +35,57 @@ function toggleSiteDark() {
             class="pointer-events-none absolute inset-0 opacity-15"
             aria-hidden="true"
         >
-            <div class="absolute inset-8 rounded-[2.5rem] border border-brand/30 sm:inset-16 transition-colors duration-300"></div>
-            <div class="absolute inset-x-8 top-1/2 h-px -translate-y-1/2 bg-brand/25 sm:inset-x-16 transition-colors duration-300"></div>
-            <div class="absolute inset-y-8 left-1/2 w-px -translate-x-1/2 bg-brand/25 sm:inset-y-16 transition-colors duration-300"></div>
+            <div
+                class="absolute inset-8 rounded-[2.5rem] border border-brand/30 transition-colors duration-300 sm:inset-16"
+            ></div>
+            <div
+                class="absolute inset-x-8 top-1/2 h-px -translate-y-1/2 bg-brand/25 transition-colors duration-300 sm:inset-x-16"
+            ></div>
+            <div
+                class="absolute inset-y-8 left-1/2 w-px -translate-x-1/2 bg-brand/25 transition-colors duration-300 sm:inset-y-16"
+            ></div>
         </div>
 
         <!-- Dark mode toggle — floating top-right -->
         <button
             type="button"
             :title="siteDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            :aria-label="siteDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            class="absolute right-5 top-5 z-20 inline-flex size-10 items-center justify-center rounded-full border border-line bg-surface-elevated text-content-muted shadow-sm transition-all duration-200 hover:scale-110 hover:text-brand"
+            :aria-label="
+                siteDark ? 'Switch to light mode' : 'Switch to dark mode'
+            "
+            class="absolute top-5 right-5 z-20 inline-flex size-10 items-center justify-center rounded-full border border-line bg-surface-elevated text-content-muted shadow-sm transition-all duration-200 hover:scale-110 hover:text-brand"
             @click="toggleSiteDark"
         >
             <!-- Sun icon — shown in dark mode, click to go light -->
-            <svg v-if="siteDark" xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            <svg
+                v-if="siteDark"
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <circle cx="12" cy="12" r="5" />
+                <path
+                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                />
             </svg>
             <!-- Moon icon — shown in light mode, click to go dark -->
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
         </button>
 
@@ -71,21 +101,37 @@ function toggleSiteDark() {
                         <img
                             :src="site?.logo ?? '/logo.jpg'"
                             :alt="site?.name ?? 'Logo'"
-                            class="size-14 rounded-full object-cover shadow-md ring-2 ring-brand/40 shadow-brand/15 transition-colors duration-300"
+                            class="size-14 rounded-full object-cover shadow-md ring-2 shadow-brand/15 ring-brand/40 transition-colors duration-300"
                         />
                         <div class="flex flex-col items-center text-center">
-                            <span class="font-display text-xl font-extrabold tracking-tight text-content transition-colors duration-300">
+                            <span
+                                class="font-display text-xl font-extrabold tracking-tight text-content transition-colors duration-300"
+                            >
                                 {{ site?.name ?? 'PickleHub' }}
                             </span>
-                            <div class="mt-0.5 flex items-center justify-center gap-1.5 text-[10px] font-extrabold uppercase leading-none">
-                                <span class="font-serif tracking-widest text-brand">RAMBOY</span>
-                                <span class="font-sans tracking-[0.2em] text-content-muted opacity-70 transition-colors duration-300">ENTERPRISE</span>
+                            <div
+                                class="mt-0.5 flex items-center justify-center gap-1.5 text-[10px] leading-none font-extrabold uppercase"
+                            >
+                                <span
+                                    class="font-serif tracking-widest text-brand"
+                                    >RAMBOY</span
+                                >
+                                <span
+                                    class="font-sans tracking-[0.2em] text-content-muted opacity-70 transition-colors duration-300"
+                                    >ENTERPRISE</span
+                                >
                             </div>
                         </div>
                     </Link>
                     <div class="space-y-1.5 text-center">
-                        <h1 class="font-display text-xl font-bold text-content transition-colors duration-300">{{ title }}</h1>
-                        <p class="text-center text-sm text-content-muted transition-colors duration-300">
+                        <h1
+                            class="font-display text-xl font-bold text-content transition-colors duration-300"
+                        >
+                            {{ title }}
+                        </h1>
+                        <p
+                            class="text-center text-sm text-content-muted transition-colors duration-300"
+                        >
                             {{ description }}
                         </p>
                     </div>

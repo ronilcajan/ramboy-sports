@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import { UploadCloud, Star, Trash2, X, Image as ImageIcon, CheckCircle2 } from '@lucide/vue';
+import {
+    UploadCloud,
+    Star,
+    Trash2,
+    X,
+    Image as ImageIcon,
+    CheckCircle2,
+} from '@lucide/vue';
+import { ref, watch, onUnmounted } from 'vue';
 import InputError from '@/components/InputError.vue';
 
 export interface CourtImageItem {
@@ -30,7 +37,7 @@ const props = withDefaults(
     }>(),
     {
         canDelete: true,
-    }
+    },
 );
 
 const emit = defineEmits(['close']);
@@ -46,6 +53,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 
 function onFileSelect(event: Event) {
     const target = event.target as HTMLInputElement;
+
     if (target.files && target.files[0]) {
         setFile(target.files[0]);
     }
@@ -55,12 +63,16 @@ function setFile(file: File) {
     // Validate client side size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
         alert('File size exceeds 5MB limit. Please choose a smaller image.');
+
         return;
     }
+
     uploadForm.image = file;
+
     if (previewUrl.value) {
         URL.revokeObjectURL(previewUrl.value);
     }
+
     previewUrl.value = URL.createObjectURL(file);
 }
 
@@ -72,17 +84,22 @@ function handleDrop(event: DragEvent) {
 
 function clearSelectedFile() {
     uploadForm.image = null;
+
     if (previewUrl.value) {
         URL.revokeObjectURL(previewUrl.value);
         previewUrl.value = null;
     }
+
     if (fileInput.value) {
         fileInput.value.value = '';
     }
 }
 
 function submitUpload() {
-    if (!uploadForm.image || !props.court) return;
+    if (!uploadForm.image || !props.court) {
+        return;
+    }
+
     uploadForm.post(props.uploadRoute, {
         preserveScroll: true,
         onSuccess: () => {
@@ -92,7 +109,10 @@ function submitUpload() {
 }
 
 function setPrimaryImage(image: CourtImageItem) {
-    if (!props.court) return;
+    if (!props.court) {
+        return;
+    }
+
     const actionForm = useForm({});
     actionForm.patch(`${props.primaryRoutePrefix}/${image.id}/primary`, {
         preserveScroll: true,
@@ -100,8 +120,14 @@ function setPrimaryImage(image: CourtImageItem) {
 }
 
 function deleteImage(image: CourtImageItem) {
-    if (!props.court || !props.canDelete || !props.deleteRoutePrefix) return;
-    if (!confirm('Are you sure you want to delete this court image?')) return;
+    if (!props.court || !props.canDelete || !props.deleteRoutePrefix) {
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this court image?')) {
+        return;
+    }
+
     const actionForm = useForm({});
     actionForm.delete(`${props.deleteRoutePrefix}/${image.id}`, {
         preserveScroll: true,
@@ -114,7 +140,7 @@ watch(
         if (!val) {
             clearSelectedFile();
         }
-    }
+    },
 );
 
 onUnmounted(() => {
@@ -125,34 +151,52 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm">
-        <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div
+        v-if="isOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm"
+    >
+        <div
+            class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+        >
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-900/50">
+            <div
+                class="flex items-center justify-between border-b border-neutral-100 bg-neutral-50/50 px-6 py-4 dark:border-neutral-800 dark:bg-neutral-900/50"
+            >
                 <div>
-                    <h3 class="font-black text-lg text-neutral-900 dark:text-white tracking-tight flex items-center gap-2">
-                        <ImageIcon class="w-5 h-5 text-emerald-600" />
+                    <h3
+                        class="flex items-center gap-2 text-lg font-black tracking-tight text-neutral-900 dark:text-white"
+                    >
+                        <ImageIcon class="h-5 w-5 text-emerald-600" />
                         Court Image Gallery: {{ court?.name }}
                     </h3>
-                    <p class="text-xs text-neutral-500">Upload promotional court photos or set the primary hero card thumbnail.</p>
+                    <p class="text-xs text-neutral-500">
+                        Upload promotional court photos or set the primary hero
+                        card thumbnail.
+                    </p>
                 </div>
                 <button
                     @click="emit('close')"
-                    class="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    class="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
                 >
-                    <X class="w-5 h-5" />
+                    <X class="h-5 w-5" />
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+            <div class="flex-1 space-y-6 overflow-y-auto p-6">
                 <!-- Upload New Image Section -->
-                <div class="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-5 bg-neutral-50/50 dark:bg-neutral-850 space-y-4">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Upload New Photo</h4>
+                <div
+                    class="dark:bg-neutral-850 space-y-4 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50/50 p-5 dark:border-neutral-700"
+                >
+                    <h4
+                        class="text-xs font-bold tracking-wider text-neutral-400 uppercase"
+                    >
+                        Upload New Photo
+                    </h4>
 
                     <div
                         @dragover.prevent
                         @drop.prevent="handleDrop"
-                        class="border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl p-4 text-center hover:border-emerald-500 transition-colors cursor-pointer bg-white dark:bg-neutral-900"
+                        class="cursor-pointer rounded-xl border-2 border-dashed border-neutral-200 bg-white p-4 text-center transition-colors hover:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-900"
                         @click="fileInput?.click()"
                     >
                         <input
@@ -163,27 +207,47 @@ onUnmounted(() => {
                             @change="onFileSelect"
                         />
 
-                        <div v-if="!previewUrl" class="flex flex-col items-center justify-center space-y-1 py-3">
-                            <UploadCloud class="w-8 h-8 text-neutral-400" />
-                            <span class="text-xs font-bold text-neutral-700 dark:text-neutral-300">Click or drag & drop image to preview</span>
-                            <span class="text-[10px] text-neutral-400">Supports JPG, PNG, WEBP up to 5MB</span>
+                        <div
+                            v-if="!previewUrl"
+                            class="flex flex-col items-center justify-center space-y-1 py-3"
+                        >
+                            <UploadCloud class="h-8 w-8 text-neutral-400" />
+                            <span
+                                class="text-xs font-bold text-neutral-700 dark:text-neutral-300"
+                                >Click or drag & drop image to preview</span
+                            >
+                            <span class="text-[10px] text-neutral-400"
+                                >Supports JPG, PNG, WEBP up to 5MB</span
+                            >
                         </div>
 
-                        <div v-else class="relative flex flex-col items-center justify-center">
-                            <img :src="previewUrl" alt="Preview" class="max-h-48 rounded-lg object-contain border border-neutral-200 dark:border-neutral-700" />
+                        <div
+                            v-else
+                            class="relative flex flex-col items-center justify-center"
+                        >
+                            <img
+                                :src="previewUrl"
+                                alt="Preview"
+                                class="max-h-48 rounded-lg border border-neutral-200 object-contain dark:border-neutral-700"
+                            />
                             <button
                                 type="button"
                                 @click.stop="clearSelectedFile"
-                                class="absolute top-1 right-1 p-1 bg-neutral-900/80 text-white rounded-full hover:bg-rose-600 transition-colors"
+                                class="absolute top-1 right-1 rounded-full bg-neutral-900/80 p-1 text-white transition-colors hover:bg-rose-600"
                                 title="Remove preview"
                             >
-                                <X class="w-4 h-4" />
+                                <X class="h-4 w-4" />
                             </button>
                         </div>
                     </div>
 
-                    <div v-if="previewUrl" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                    <div
+                        v-if="previewUrl"
+                        class="flex flex-col justify-between gap-3 pt-1 sm:flex-row sm:items-center"
+                    >
+                        <label
+                            class="flex cursor-pointer items-center gap-2 text-xs font-semibold text-neutral-700 dark:text-neutral-300"
+                        >
                             <input
                                 v-model="uploadForm.is_primary"
                                 type="checkbox"
@@ -196,7 +260,7 @@ onUnmounted(() => {
                             <button
                                 type="button"
                                 @click="clearSelectedFile"
-                                class="px-3 py-1.5 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                class="px-3 py-1.5 text-xs font-bold text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
                             >
                                 Cancel
                             </button>
@@ -204,9 +268,13 @@ onUnmounted(() => {
                                 type="button"
                                 @click="submitUpload"
                                 :disabled="uploadForm.processing"
-                                class="px-4 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                                class="rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-bold text-white shadow-md transition-colors hover:bg-emerald-700 disabled:opacity-50"
                             >
-                                {{ uploadForm.processing ? 'Uploading...' : 'Save & Upload Photo' }}
+                                {{
+                                    uploadForm.processing
+                                        ? 'Uploading...'
+                                        : 'Save & Upload Photo'
+                                }}
                             </button>
                         </div>
                     </div>
@@ -216,50 +284,77 @@ onUnmounted(() => {
 
                 <!-- Existing Images Gallery -->
                 <div class="space-y-3">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Current Court Images</h4>
+                    <h4
+                        class="text-xs font-bold tracking-wider text-neutral-400 uppercase"
+                    >
+                        Current Court Images
+                    </h4>
 
-                    <div v-if="court?.images && court.images.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div
+                        v-if="court?.images && court.images.length > 0"
+                        class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                    >
                         <div
                             v-for="img in court.images"
                             :key="img.id"
-                            class="relative group rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm flex flex-col"
+                            class="group relative flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
                         >
-                            <div class="aspect-video relative overflow-hidden bg-neutral-100 dark:bg-neutral-800">
-                                <img :src="img.url" :alt="court.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div
+                                class="relative aspect-video overflow-hidden bg-neutral-100 dark:bg-neutral-800"
+                            >
+                                <img
+                                    :src="img.url"
+                                    :alt="court.name"
+                                    class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
                                 <span
                                     v-if="img.is_primary"
-                                    class="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-black rounded-full shadow-sm flex items-center gap-1"
+                                    class="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-black text-white shadow-sm"
                                 >
-                                    <Star class="w-3 h-3 fill-white" /> Primary Hero
+                                    <Star class="h-3 w-3 fill-white" /> Primary
+                                    Hero
                                 </span>
                             </div>
 
-                            <div class="p-3 flex items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
+                            <div
+                                class="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50/50 p-3 dark:border-neutral-800 dark:bg-neutral-900/50"
+                            >
                                 <button
                                     v-if="!img.is_primary"
                                     @click="setPrimaryImage(img)"
-                                    class="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                                    class="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
                                 >
-                                    <CheckCircle2 class="w-3.5 h-3.5" /> Set as Primary
+                                    <CheckCircle2 class="h-3.5 w-3.5" /> Set as
+                                    Primary
                                 </button>
-                                <span v-else class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                                    <Star class="w-3.5 h-3.5 fill-emerald-600" /> Hero Display
+                                <span
+                                    v-else
+                                    class="flex items-center gap-1 text-[11px] font-bold text-emerald-600"
+                                >
+                                    <Star
+                                        class="h-3.5 w-3.5 fill-emerald-600"
+                                    />
+                                    Hero Display
                                 </span>
 
                                 <button
                                     v-if="canDelete && deleteRoutePrefix"
                                     @click="deleteImage(img)"
-                                    class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                                    class="rounded-lg p-1.5 text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40"
                                     title="Delete Image"
                                 >
-                                    <Trash2 class="w-4 h-4" />
+                                    <Trash2 class="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div v-else class="p-8 text-center text-xs text-neutral-400 border border-dashed rounded-2xl">
-                        No images uploaded for this court yet. Upload your first court image above.
+                    <div
+                        v-else
+                        class="rounded-2xl border border-dashed p-8 text-center text-xs text-neutral-400"
+                    >
+                        No images uploaded for this court yet. Upload your first
+                        court image above.
                     </div>
                 </div>
             </div>

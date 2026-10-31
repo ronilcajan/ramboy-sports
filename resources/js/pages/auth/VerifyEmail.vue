@@ -37,7 +37,7 @@ defineProps<{
     >
         <Button
             :disabled="processing"
-            class="w-full bg-brand text-brand-foreground font-bold shadow-lg shadow-brand/20 hover:bg-brand/90 focus-visible:ring-brand border-0 transition-all duration-200"
+            class="w-full border-0 bg-brand font-bold text-brand-foreground shadow-lg shadow-brand/20 transition-all duration-200 hover:bg-brand/90 focus-visible:ring-brand"
         >
             <Spinner v-if="processing" />
             Resend verification email

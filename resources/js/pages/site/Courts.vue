@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
-import PageHero from '@/components/site/PageHero.vue';
-import SiteVenueCard, {
-    type CatalogVenue,
-} from '@/components/site/SiteVenueCard.vue';
-import SiteCourtCard from '@/components/site/SiteCourtCard.vue';
-import BookingModal from '@/components/site/BookingModal.vue';
 import { MapPin, Phone, Mail, ArrowLeft, Building2 } from '@lucide/vue';
+import { ref, computed } from 'vue';
+import BookingModal from '@/components/site/BookingModal.vue';
+import PageHero from '@/components/site/PageHero.vue';
+import SiteCourtCard from '@/components/site/SiteCourtCard.vue';
+import SiteVenueCard from '@/components/site/SiteVenueCard.vue';
+import type { CatalogVenue } from '@/components/site/SiteVenueCard.vue';
 import type { PublicCourt } from '@/types';
 
 const props = defineProps<{
@@ -34,6 +33,7 @@ const displayCourts = computed(() => {
                   (c) => c.venue?.id === selectedVenue.value?.id,
               );
     }
+
     return props.courts;
 });
 
