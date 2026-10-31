@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property CourtStatus $status
  * @property string $base_price
+ * @property array<string, mixed>|null $slot_prices
  * @property int $slot_duration_minutes
  * @property int $buffer_minutes
  * @property bool $is_active
@@ -85,6 +86,16 @@ class Court extends Model
         }
 
         return (float) $this->base_price;
+    }
+
+    /**
+     * Get the combined price of the given time slots using per-slot pricing.
+     *
+     * @param  array<int, string>  $slots
+     */
+    public function priceForSlots(array $slots): float
+    {
+        return array_sum(array_map(fn (string $slot): float => $this->getSlotPrice($slot), $slots));
     }
 
     /**

@@ -125,7 +125,7 @@ class AdminBookingController extends Controller
                 'court' => $booking->court ? [
                     'id' => $booking->court->id,
                     'name' => $booking->court->name,
-                    'sport_type' => $booking->court->sport_type?->label() ?? $booking->court->sport_type,
+                    'sport_type' => $booking->court->sport_type->label(),
                     'slot_duration_minutes' => $booking->court->slot_duration_minutes,
                 ] : null,
             ]);
@@ -197,7 +197,7 @@ class AdminBookingController extends Controller
         }
 
         // Scope the court to what the user may manage (venue admins → own venue).
-        $court = Court::visibleTo($user)->findOrFail($validated['court_id']);
+        $court = Court::visibleTo($user)->whereKey($validated['court_id'])->firstOrFail();
 
         $booking = Booking::create([
             'court_id' => $court->id,
@@ -208,7 +208,7 @@ class AdminBookingController extends Controller
             'date' => $validated['date'],
             'time_slots' => $validated['time_slots'],
             'notes' => $validated['notes'] ?? null,
-            'total_price' => collect($validated['time_slots'])->sum(fn (string $slot) => $court->getSlotPrice($slot)),
+            'total_price' => $court->priceForSlots($validated['time_slots']),
             'status' => 'approved',
         ]);
 
@@ -249,7 +249,7 @@ class AdminBookingController extends Controller
         $requestedSlots = $validated['time_slots'] ?? $booking->time_slots;
 
         // Scope check for venue admins
-        $court = Court::visibleTo($user)->findOrFail($courtId);
+        $court = Court::visibleTo($user)->whereKey($courtId)->firstOrFail();
 
         if (isset($validated['date']) || isset($validated['time_slots'])) {
             foreach ($requestedSlots as $slot) {
@@ -282,7 +282,7 @@ class AdminBookingController extends Controller
             }
         }
 
-        $totalPrice = collect($requestedSlots)->sum(fn (string $slot) => $court->getSlotPrice($slot));
+        $totalPrice = $court->priceForSlots($requestedSlots);
 
         $previousStatus = $booking->status;
         $newStatus = $validated['status'] ?? $booking->status;

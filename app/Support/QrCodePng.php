@@ -4,6 +4,7 @@ namespace App\Support;
 
 use BaconQrCode\Common\ErrorCorrectionLevel;
 use BaconQrCode\Encoder\Encoder;
+use RuntimeException;
 
 class QrCodePng
 {
@@ -19,7 +20,7 @@ class QrCodePng
         $count = $matrix->getWidth();
 
         $moduleSize = max(1, (int) floor($targetSize / ($count + $margin * 2)));
-        $imageSize = ($count + $margin * 2) * $moduleSize;
+        $imageSize = max(1, ($count + $margin * 2) * $moduleSize);
 
         if (! function_exists('imagecreatetruecolor')) {
             return (string) base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', true);
@@ -28,6 +29,11 @@ class QrCodePng
         $image = imagecreatetruecolor($imageSize, $imageSize);
         $white = imagecolorallocate($image, 255, 255, 255);
         $dark = imagecolorallocate($image, 17, 24, 39);
+
+        if ($white === false || $dark === false) {
+            throw new RuntimeException('Unable to allocate QR code colors.');
+        }
+
         imagefilledrectangle($image, 0, 0, $imageSize, $imageSize, $white);
 
         for ($y = 0; $y < $count; $y++) {

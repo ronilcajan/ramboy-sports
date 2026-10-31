@@ -63,8 +63,8 @@ class CustomerRewardController extends Controller
             ->map(fn (RewardClaim $c): array => [
                 'id' => $c->id,
                 'voucher_code' => $c->voucher_code,
-                'reward_name' => $c->reward?->name ?? 'Reward Voucher',
-                'reward_category' => $c->reward?->category ?? 'General',
+                'reward_name' => $c->reward->name ?? 'Reward Voucher',
+                'reward_category' => $c->reward->category ?? 'General',
                 'points_spent' => $c->points_spent,
                 'status' => $c->status,
                 'expires_at' => $c->expires_at?->toFormattedDateString() ?? 'No expiration',
@@ -87,8 +87,8 @@ class CustomerRewardController extends Controller
                 return [
                     'court_id' => $court->id,
                     'court_name' => $court->name,
-                    'venue_name' => $court->venue?->name ?? 'Main Venue',
-                    'sport_type' => $court->sport_type?->label() ?? (string) $court->sport_type,
+                    'venue_name' => $court->venue->name ?? 'Main Venue',
+                    'sport_type' => $court->sport_type->label(),
                     'bookings_count' => $bookingsCount,
                     'points_earned' => $bookingsCount * 50,
                     'loyalty_level' => $loyaltyLevel,

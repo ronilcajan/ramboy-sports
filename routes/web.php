@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return [
                     'id' => $court->id,
                     'name' => $court->name,
-                    'sport_type' => $court->sport_type?->label() ?? $court->sport_type,
+                    'sport_type' => $court->sport_type->label(),
                     'base_price' => (string) $court->base_price,
                 ];
             }),

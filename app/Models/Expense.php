@@ -24,6 +24,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Venue|null $venue
  * @property-read User|null $user
+ *
+ * Aggregate aliases populated by selectRaw() in the expense and report
+ * queries; absent unless the query requested them.
+ * @property-read float|int|string|null $sum_amount
+ * @property-read float|int|string|null $total_amount
+ * @property-read int|string|null $count
  */
 class Expense extends Model
 {

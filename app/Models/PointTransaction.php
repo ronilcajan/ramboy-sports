@@ -2,14 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $points
+ * @property string $type
+ * @property string $description
+ * @property int|null $created_by_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class PointTransaction extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'user_id',
         'points',

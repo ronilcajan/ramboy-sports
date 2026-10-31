@@ -95,7 +95,7 @@ class PageController extends Controller
                 'slot_prices' => $court->slot_prices,
                 'slot_duration_minutes' => $court->slot_duration_minutes,
                 'primary_image_url' => $court->primaryImage ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path)) : null,
-                'images' => $court->images->map(fn ($img) => str_starts_with($img->path, 'http') ? $img->path : asset('storage/'.$img->path)),
+                'images' => $court->images->map(fn (CourtImage $img) => str_starts_with($img->path, 'http') ? $img->path : asset('storage/'.$img->path)),
                 'venue' => $court->venue ? [
                     'id' => $court->venue->id,
                     'name' => $court->venue->name,
@@ -133,7 +133,7 @@ class PageController extends Controller
             'slot_prices' => $court->slot_prices,
             'slot_duration_minutes' => $court->slot_duration_minutes,
             'primary_image_url' => $court->primaryImage ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path)) : null,
-            'images' => $court->images->map(fn ($img) => str_starts_with($img->path, 'http') ? $img->path : asset('storage/'.$img->path)),
+            'images' => $court->images->map(fn (CourtImage $img) => str_starts_with($img->path, 'http') ? $img->path : asset('storage/'.$img->path)),
             'venue' => [
                 'id' => $venue->id,
                 'name' => $venue->name,
@@ -212,7 +212,7 @@ class PageController extends Controller
             'primary_image_url' => $court->primaryImage
                 ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path))
                 : null,
-            'images' => $court->images->map(fn ($img) => $img->url)->values(),
+            'images' => $court->images->map(fn (CourtImage $img) => $img->url)->values(),
         ]);
     }
 
@@ -233,7 +233,32 @@ class PageController extends Controller
     /**
      * Venue catalog with assigned active courts.
      *
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{
+     *     id: int,
+     *     name: string,
+     *     slug: string,
+     *     description: string|null,
+     *     address: string|null,
+     *     phone: string|null,
+     *     email: string|null,
+     *     image_url: string|null,
+     *     cover_image_url: string|null,
+     *     courts_count: int<0, max>,
+     *     courts: Collection<int, array{
+     *         id: int,
+     *         name: string,
+     *         slug: string,
+     *         sport_type: string,
+     *         description: string|null,
+     *         base_price: string,
+     *         slot_prices: array<string, mixed>|null,
+     *         slot_duration_minutes: int,
+     *         primary_image_url: string|null,
+     *         images: Collection<int, string>,
+     *         venue: array{id: int, name: string, slug: string, address: string|null}
+     *     }>,
+     *     payment_methods: array<string, array{number: string, qr_url: string|null}>
+     * }>
      */
     private function venueCatalog(): Collection
     {
@@ -259,7 +284,7 @@ class PageController extends Controller
                     'slot_prices' => $court->slot_prices,
                     'slot_duration_minutes' => $court->slot_duration_minutes,
                     'primary_image_url' => $court->primaryImage ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path)) : null,
-                    'images' => $court->images->map(fn ($img) => $img->url)->values(),
+                    'images' => $court->images->map(fn (CourtImage $img) => $img->url)->values(),
                     'venue' => [
                         'id' => $venue->id,
                         'name' => $venue->name,
@@ -288,7 +313,19 @@ class PageController extends Controller
     /**
      * Courts that are available and active, shaped for public display.
      *
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{
+     *     id: int,
+     *     name: string,
+     *     slug: string,
+     *     sport_type: string,
+     *     description: string|null,
+     *     base_price: string,
+     *     slot_prices: array<string, mixed>|null,
+     *     slot_duration_minutes: int,
+     *     primary_image_url: string|null,
+     *     images: Collection<int, string>,
+     *     venue: array{id: int, name: string, slug: string, address: string|null}|null
+     * }>
      */
     private function bookableCourts(?int $limit = null, ?int $venueId = null): Collection
     {
@@ -310,7 +347,7 @@ class PageController extends Controller
                 'slot_prices' => $court->slot_prices,
                 'slot_duration_minutes' => $court->slot_duration_minutes,
                 'primary_image_url' => $court->primaryImage ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path)) : null,
-                'images' => $court->images->map(fn ($img) => $img->url)->values(),
+                'images' => $court->images->map(fn (CourtImage $img) => $img->url)->values(),
                 'venue' => $court->venue ? [
                     'id' => $court->venue->id,
                     'name' => $court->venue->name,

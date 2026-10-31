@@ -32,7 +32,7 @@ class BookingStatusNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $courtName = $this->booking->court?->name ?? 'Court';
+        $courtName = $this->booking->court->name ?? 'Court';
 
         return [
             'booking_id' => $this->booking->id,

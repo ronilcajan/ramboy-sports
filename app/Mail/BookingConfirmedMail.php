@@ -46,7 +46,7 @@ class BookingConfirmedMail extends Mailable
     {
         $court = $this->booking->court;
         $slotCount = count($this->booking->time_slots ?? []);
-        $minutes = $slotCount * ($court?->slot_duration_minutes ?? 60);
+        $minutes = $slotCount * ($court->slot_duration_minutes ?? 60);
         $hours = $minutes / 60;
 
         return new Content(
@@ -54,8 +54,8 @@ class BookingConfirmedMail extends Mailable
             with: [
                 'reference' => $this->referenceCode(),
                 'customerName' => $this->booking->name,
-                'venueName' => $court?->venue?->name ?? 'Sports Facility',
-                'courtName' => $court?->name ?? 'Court',
+                'venueName' => $court->venue->name ?? 'Sports Facility',
+                'courtName' => $court->name ?? 'Court',
                 'date' => $this->booking->date->toDateString(),
                 'timeSlots' => implode(', ', $this->booking->time_slots ?? []),
                 'duration' => ($hours === floor($hours) ? (int) $hours : $hours).' '.($hours === 1.0 ? 'hour' : 'hours'),

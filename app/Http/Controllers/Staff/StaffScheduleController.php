@@ -71,7 +71,7 @@ class StaffScheduleController extends Controller
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $court = Court::findOrFail($validated['court_id']);
+        $court = Court::whereKey($validated['court_id'])->firstOrFail();
         $this->authorize('manage', [CourtUnavailability::class, $court]);
 
         CourtUnavailability::create([

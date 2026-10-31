@@ -3,16 +3,30 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property string $category
+ * @property int $points_cost
+ * @property int|null $stock
+ * @property string|null $badge_text
+ * @property string $icon
+ * @property string|null $terms
+ * @property int|null $venue_id
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Reward extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
         'slug',

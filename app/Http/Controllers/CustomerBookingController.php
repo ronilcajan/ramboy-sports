@@ -23,7 +23,7 @@ class CustomerBookingController extends Controller
                 return [
                     'id' => $court->id,
                     'name' => $court->name,
-                    'sport_type' => $court->sport_type?->label() ?? $court->sport_type,
+                    'sport_type' => $court->sport_type->label(),
                     'base_price' => (string) $court->base_price,
                     'slot_prices' => $court->slot_prices,
                     'slot_duration_minutes' => $court->slot_duration_minutes,

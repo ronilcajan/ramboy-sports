@@ -103,7 +103,7 @@ class AdminUserController extends Controller
             ->map(fn ($c) => [
                 'id' => $c->id,
                 'voucher_code' => $c->voucher_code,
-                'reward_name' => $c->reward?->name ?? 'Reward Voucher',
+                'reward_name' => $c->reward->name ?? 'Reward Voucher',
                 'points_spent' => $c->points_spent,
                 'status' => $c->status,
                 'expires_at' => $c->expires_at?->toFormattedDateString(),

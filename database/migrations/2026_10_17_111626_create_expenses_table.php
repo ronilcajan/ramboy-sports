@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->date('date')->index();
             $table->string('category')->default('other')->index();
-            $table->foreignId('venue_id')->nullable()->constrained('venues')->nullOnDelete()->index();
+            $table->foreignId('venue_id')->nullable()->constrained('venues')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('payment_method')->nullable();
             $table->string('reference_number')->nullable();

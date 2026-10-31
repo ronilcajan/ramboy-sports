@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Mail;
  * @property string $email
  * @property string $phone
  * @property Carbon $date
- * @property array $time_slots
+ * @property array<int, string> $time_slots
  * @property string|null $notes
  * @property string|null $admin_notes
  * @property string $total_price
@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Mail;
  * @property-read float $total_hours
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Court|null $court Null when the court has been soft deleted.
  */
 #[Fillable([
     'court_id',
@@ -74,7 +75,7 @@ class Booking extends Model
     /**
      * The accessors to append to the model's array form.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $appends = ['receipt_url', 'total_hours'];
 
@@ -101,13 +102,13 @@ class Booking extends Model
      */
     public function calculateDurationHours(): float
     {
-        if (empty($this->time_slots) || ! is_array($this->time_slots)) {
+        if (empty($this->time_slots)) {
             return 0.0;
         }
 
         $totalMinutes = 0;
         foreach ($this->time_slots as $slot) {
-            if (! is_string($slot) || trim($slot) === '') {
+            if (trim($slot) === '') {
                 continue;
             }
 
@@ -131,7 +132,7 @@ class Booking extends Model
                 }
             }
 
-            $totalMinutes += $this->court?->slot_duration_minutes ?? 60;
+            $totalMinutes += $this->court->slot_duration_minutes ?? 60;
         }
 
         return round($totalMinutes / 60, 2);
@@ -285,7 +286,7 @@ class Booking extends Model
         if (preg_match('/^(\d{1,2}):(\d{2})\s*(AM|PM)?/i', $trimmed, $matches)) {
             $h = (int) $matches[1];
             $m = (int) $matches[2];
-            $period = isset($matches[3]) && $matches[3] !== '' ? strtoupper($matches[3]) : null;
+            $period = isset($matches[3]) ? strtoupper($matches[3]) : null;
 
             if ($period === null) {
                 if (preg_match('/\b(AM|PM)\b/i', $trimmed, $periodMatches)) {
@@ -319,7 +320,7 @@ class Booking extends Model
     public static function isSlotInPast(string|Carbon $date, string $slot, ?Carbon $now = null): bool
     {
         if ($now === null) {
-            $tz = request()?->header('X-Timezone') ?? request()?->input('timezone') ?? config('app.timezone');
+            $tz = request()->header('X-Timezone') ?? request()->input('timezone') ?? config('app.timezone');
             try {
                 $now = Carbon::now($tz);
             } catch (\Throwable) {

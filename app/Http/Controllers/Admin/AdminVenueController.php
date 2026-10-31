@@ -75,12 +75,12 @@ class AdminVenueController extends Controller
             'id' => $court->id,
             'name' => $court->name,
             'slug' => $court->slug,
-            'sport_type' => $court->sport_type?->label() ?? $court->sport_type,
+            'sport_type' => $court->sport_type->label(),
             'description' => $court->description,
             'base_price' => (string) $court->base_price,
             'slot_duration_minutes' => $court->slot_duration_minutes,
             'is_active' => $court->is_active,
-            'status' => $court->status?->value ?? $court->status,
+            'status' => $court->status->value,
             'primary_image_url' => $court->primaryImage ? (str_starts_with($court->primaryImage->path, 'http') ? $court->primaryImage->path : asset('storage/'.$court->primaryImage->path)) : null,
         ]);
 
@@ -106,7 +106,7 @@ class AdminVenueController extends Controller
         $bookings = $query->paginate(15)->through(fn (Booking $booking) => [
             'id' => $booking->id,
             'reference_code' => 'DY-RESRV-'.str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT),
-            'court_name' => $booking->court?->name ?? 'Deleted Court',
+            'court_name' => $booking->court->name ?? 'Deleted Court',
             'sport_type' => $booking->court?->sport_type?->label() ?? $booking->court?->sport_type,
             'name' => $booking->name,
             'email' => $booking->email,

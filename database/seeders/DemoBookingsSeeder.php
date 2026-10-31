@@ -84,6 +84,6 @@ class DemoBookingsSeeder extends Seeder
             }
         }
 
-        $this->command?->info("Seeded {$created} demo bookings across {$courts->count()} courts and 24 days.");
+        $this->command->info("Seeded {$created} demo bookings across {$courts->count()} courts and 24 days.");
     }
 }

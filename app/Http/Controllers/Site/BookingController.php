@@ -64,7 +64,7 @@ class BookingController extends Controller
             'time_slots' => $requestedSlots,
             'notes' => $request->validated('notes'),
             // Total price is driven by the court's dynamic per-slot pricing.
-            'total_price' => collect($requestedSlots)->sum(fn (string $slot) => $court->getSlotPrice($slot)),
+            'total_price' => $court->priceForSlots($requestedSlots),
             'receipt_path' => $receiptPath,
             'transaction_code' => $request->validated('transaction_code'),
             'status' => 'pending',
@@ -262,8 +262,8 @@ class BookingController extends Controller
             }
         }
 
-        $court = Court::findOrFail($courtId);
-        $totalPrice = collect($requestedSlots)->sum(fn (string $slot) => $court->getSlotPrice($slot));
+        $court = Court::whereKey($courtId)->firstOrFail();
+        $totalPrice = $court->priceForSlots($requestedSlots);
 
         $updateData = [
             'court_id' => $courtId,
