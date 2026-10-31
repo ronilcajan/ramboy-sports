@@ -42,8 +42,8 @@
         html[data-theme='fairway']:not(.dark) { background-color: #faf9f6; }
         html[data-theme='electric']:not(.dark) { background-color: #f8f9fa; }
 
-        {{-- Alternate light-mode backgrounds when .site-dark is toggled by visitor --}}
-        html[data-theme='navy'].site-dark:not(.dark) { background-color: #f5f7fb; }
+        {{-- Dark mode backgrounds when .site-dark is toggled by visitor --}}
+        html[data-theme='navy'].site-dark:not(.dark) { background-color: #090d16; }
         html[data-theme='fairway'].site-dark:not(.dark) { background-color: #1a1f14; }
         html[data-theme='electric'].site-dark:not(.dark) { background-color: #0d1117; }
     </style>
